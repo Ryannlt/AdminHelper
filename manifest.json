@@ -1,0 +1,9 @@
+{
+  "name": "AdminEye",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/Ryannlt/AdminEye",
+  "description": "Finds players who have left their formation and marks them, so admins do not have to eyeball a 150 player field. Client side, and shows nothing about anyone until the server authenticates your rc login.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2305"
+  ]
+}
