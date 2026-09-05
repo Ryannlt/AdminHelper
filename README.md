@@ -53,7 +53,7 @@ Two states:
 A corner list gives you the same players sorted worst first, with scores and distance, so you know who to fly
 to.
 
-Press **J** to hide and show the overlay. The scorer keeps running while it is hidden, so nothing is lost and a
+Press **F6** to hide and show the overlay. The scorer keeps running while it is hidden, so nothing is lost and a
 player already flagged is still flagged when you bring it back. Change the key with `ToggleKey`.
 
 ### The two numbers
@@ -102,6 +102,11 @@ against bots on your own server, and turning it off gives you exactly what it so
 no restart. Entries are grouped into `[General]`, `[Isolation]`, `[Scoring]`, `[Danger]`, `[Formation]`,
 `[Flagging]` and `[Display]` sections.
 
+For an in-game editor instead of a text file, [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager)
+works, but only after setting `HideManagerGameObject = true` under `[Chainloader]` in
+`BepInEx\config\BepInEx.cfg`. Holdfast's BepInEx pack ships that as `false`, which stops
+ConfigurationManager drawing at all.
+
 | Setting | Default | Effect |
 | --- | --- | --- |
 | `Enabled` | `true` | Master switch. Off stops the scorer as well as the HUD. |
@@ -130,7 +135,7 @@ no restart. Entries are grouped into `[General]`, `[Isolation]`, `[Scoring]`, `[
 | `ShowCornerList` | `true` | Corner list of watched players, worst first. |
 | `ShowOwnScore` | `true` | Your own scores plus the raw distances behind them. Works without an `rc login`. |
 | `MaxLabels` | `12` | Most floating labels at once, worst first. |
-| `ToggleKey` | `J` | Key that hides and shows the HUD. Any `KeyCode` name. |
+| `ToggleKey` | `F6` | Key that hides and shows the HUD. Any `KeyCode` name. |
 | `StartHudVisible` | `true` | Whether the HUD starts visible. |
 
 ## Tuning it
@@ -172,6 +177,9 @@ folder sit next to `Holdfast NaW.exe`. If you use a mod manager, launch the game
 **Mod loads but nothing is drawn.** You are almost certainly not logged into the server console. Run
 `rc login <password>` and try again. If that is not it, check `Enabled` and press the toggle key.
 
+**Nothing is drawn and the log has no `scene loaded` line.** The mod lost its frame loop. Open an issue with
+`BepInEx\LogOutput.log`; the `driver awake`, `driver destroyed` and `scene loaded` lines say what happened.
+
 **Rings are missing but labels work.** The ring shader could not be found. Set `ShowRings` to false and open an
 issue with your log.
 
@@ -191,7 +199,7 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 
 That compiles every `.cs` in the folder and copies the `.dll` into the r2modman profile's
 `BepInEx\plugins\AdminEye\`. Restart the game to load it. Add `-NoDeploy` to build without copying, which is
-useful while the game is running and holding the file. `-ProfileName` picks a profile other than `Default`.
+useful while the game is running and holding the file. `-ProfileName` picks a profile other than `Dev`.
 
 `package.ps1` builds the same way and stages an uploadable Thunderstore zip in `Package\`.
 
@@ -208,14 +216,14 @@ needing a targeting pack installed.
 
 ### Why there is no CI build
 
-Building needs `Assembly-CSharp.dll` from a real install. Those are Anvil's files, not mine to redistribute, so
+Building needs `Assembly-CSharp.dll` from a real install. Those are AGS files, not mine to redistribute, so
 they cannot be committed here and a GitHub Actions runner has no way to get them. Releases are built locally and
 uploaded by hand.
 
 ## Compatibility
 
 Built against Holdfast on Unity 2022.3.62f2 with BepInEx 5.4.23.5 (Mono). It reads named fields rather than
-offsets, so it usually survives game updates. If Anvil renames or restructures the client player managers it
+offsets, so it usually survives game updates. If AGS renames or restructures the client player managers it
 will stop working rather than misbehave. Open an issue if that happens.
 
 ## Licence

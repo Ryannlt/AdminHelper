@@ -48,7 +48,7 @@ namespace AdminEye
         private static readonly HashSet<PlayerClass> ExemptSet = new HashSet<PlayerClass>();
         private static string _exemptSource;
         private static string _toggleKeySource;
-        private static KeyCode _toggleKey = KeyCode.J;
+        private static KeyCode _toggleKey = KeyCode.F6;
 
         private static ConfigFile _config;
         private static DateTime _stamp;
@@ -116,7 +116,7 @@ namespace AdminEye
                 "Your own scores plus the raw distances behind them. The fastest way to pick thresholds.");
             MaxLabels = config.Bind("Display", "MaxLabels", 12,
                 "Most floating labels drawn at once, nearest first.");
-            ToggleKey = config.Bind("Display", "ToggleKey", "J",
+            ToggleKey = config.Bind("Display", "ToggleKey", "F6",
                 "Key that hides and shows the HUD. Any UnityEngine.KeyCode name.");
             StartHudVisible = config.Bind("Display", "StartHudVisible", true,
                 "Whether the HUD starts visible each session.");
@@ -189,7 +189,7 @@ namespace AdminEye
             if (source == _toggleKeySource) return _toggleKey;
 
             _toggleKeySource = source;
-            _toggleKey = KeyCode.J;
+            _toggleKey = KeyCode.F6;
 
             string name = source.Trim();
             if (name.Length == 0) return _toggleKey;
@@ -200,7 +200,7 @@ namespace AdminEye
             }
             catch (Exception)
             {
-                Log.Warn("ToggleKey '" + name + "' is not a KeyCode name. Falling back to J.");
+                Log.Warn("ToggleKey '" + name + "' is not a KeyCode name. Falling back to F6.");
             }
 
             return _toggleKey;

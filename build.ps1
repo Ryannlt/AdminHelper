@@ -7,7 +7,7 @@
 
 param(
     # Which r2modman profile to deploy into.
-    [string]$ProfileName = 'Default',
+    [string]$ProfileName = 'Dev',
 
     # Skip the deploy. package.ps1 uses this so a running game cannot block a build.
     [switch]$NoDeploy

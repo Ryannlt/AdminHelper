@@ -6,7 +6,7 @@
 
 param(
     # Which r2modman profile to take the BepInEx reference assemblies from.
-    [string]$ProfileName = 'Default'
+    [string]$ProfileName = 'Dev'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -85,10 +85,11 @@ Write-Host @'
 
 To publish:
 
-  1. Commit and push, and tag the release to match.
-  2. Test the zip first: r2modman -> Settings -> Import local mod, into a clean profile.
-  3. thunderstore.io/c/holdfast-nations-at-war/ -> Upload, and pick the Package\ zip.
-  4. Categories: Mods, Client-side.
+  1. Install this exact zip into the Live profile: r2modman -> Settings -> Import local mod. Play a round.
+  2. thunderstore.io/c/holdfast-nations-at-war/ -> Upload, team Ryannlt, pick the Package\ zip.
+  3. Categories: Mods, Client-side.
+  4. Commit, push, and tag the release to match.
 
-Remember the version can never be reused, so a bad upload costs a version bump.
+Step 1 is not optional. A version can never be reused, and an author cannot delete a package or any version of
+it, only deprecate it. A bad upload is permanent.
 '@

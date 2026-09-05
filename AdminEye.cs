@@ -21,6 +21,7 @@ namespace AdminEye
         private readonly Hotkey _hotkey = new Hotkey();
         private readonly Hud _hud = new Hud();
 
+        private Driver _driver;
         private float _accumulator;
         private bool _wasInRound;
 
@@ -31,18 +32,24 @@ namespace AdminEye
 
             // BepInEx has no per-scene callback of its own, so the mod takes Unity's.
             SceneManager.sceneLoaded += OnSceneLoaded;
+            EnsureDriver();
 
             Log.Info("Ready. Toggle key " + Settings.ResolveToggleKey() +
                      ", RequireAdminLogin=" + Settings.RequireAdminLogin.Value);
         }
 
+        // Deliberately does not unsubscribe sceneLoaded. Unity destroys objects before firing that event, so
+        // dropping it here removes the only hook that outlives the manager object and the mod never returns.
         private void OnDestroy()
         {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
+            Log.Info("plugin component destroyed");
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            Log.Info("scene loaded " + scene.name + " driverAlive=" + (_driver != null));
+            EnsureDriver();
+
             GameAccess.ClearSceneCache();
             _tracker.Reset();
             _rings.Destroy();
@@ -50,7 +57,14 @@ namespace AdminEye
             _wasInRound = false;
         }
 
-        private void Update()
+        // A host made before the first scene does not survive it, so the driver is remade whenever it has gone.
+        private void EnsureDriver()
+        {
+            if (_driver != null) return;
+            _driver = Driver.Attach(this);
+        }
+
+        internal void Tick()
         {
             // Ahead of the Enabled test, so the master switch can be turned back on from the cfg.
             Settings.PollForExternalEdits();
@@ -91,7 +105,7 @@ namespace AdminEye
             else _rings.HideAll();
         }
 
-        private void OnGUI()
+        internal void DrawGui()
         {
             if (!Settings.Enabled.Value || !_hotkey.Visible || !GameAccess.InRound) return;
 
