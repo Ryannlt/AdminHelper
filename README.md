@@ -20,7 +20,7 @@ the game from the manager. BepInEx is pulled in as a dependency, so there is not
 run the game once so it creates its folders. Then put `AdminHelper.dll` here:
 
 ```
-Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper.dll
+Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\AdminHelper.dll
 ```
 
 ### Did it work?
