@@ -17,7 +17,8 @@ the game from the manager. BepInEx is pulled in as a dependency, so there is not
 
 **By hand.** Install
 [BepInExPack](https://thunderstore.io/c/holdfast-nations-at-war/p/BepInEx/BepInExPack/) into the game folder and
-run the game once so it creates its folders. Then put `AdminHelper.dll` here:
+run the game once so it creates its folders. Then download `AdminHelper.dll` from the
+[latest release](https://github.com/Ryannlt/AdminHelper/releases/latest) and put it here:
 
 ```
 Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\AdminHelper.dll
