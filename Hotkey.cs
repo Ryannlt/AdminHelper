@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
-    // The HUD toggle. Defaults to a plain letter, so the typing guard is required rather than polite.
+    // The HUD toggle. Set once at startup and then session scoped, so a round change does not undo a press.
     internal sealed class Hotkey
     {
-        private bool _visible = true;
+        private bool _visible;
 
         public bool Visible
         {

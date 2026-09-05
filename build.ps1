@@ -1,4 +1,4 @@
-# Builds AdminEye.dll and drops it in an r2modman profile.
+# Builds AdminHelper.dll and drops it in an r2modman profile.
 #
 #   powershell -ExecutionPolicy Bypass -File .\build.ps1
 #
@@ -19,8 +19,8 @@ $GameDir    = 'C:\Program Files (x86)\Steam\steamapps\common\Holdfast Nations At
 $ManagedDir = Join-Path $GameDir 'Holdfast NaW_Data\Managed'
 $ProfileDir = Join-Path $env:APPDATA "r2modmanPlus-local\HoldfastNationsAtWar\profiles\$ProfileName"
 $BepInExDir = Join-Path $ProfileDir 'BepInEx\core'
-$PluginsDir = Join-Path $ProfileDir 'BepInEx\plugins\AdminEye'
-$OutFile    = Join-Path $PSScriptRoot 'AdminEye.dll'
+$PluginsDir = Join-Path $ProfileDir 'BepInEx\plugins\AdminHelper'
+$OutFile    = Join-Path $PSScriptRoot 'AdminHelper.dll'
 
 if (-not (Test-Path $ManagedDir)) { throw "Missing directory: $ManagedDir" }
 if (-not (Test-Path $BepInExDir)) {
@@ -68,7 +68,7 @@ if ($NoDeploy) {
 
 try {
     if (-not (Test-Path $PluginsDir)) { New-Item -ItemType Directory -Path $PluginsDir -Force | Out-Null }
-    Copy-Item $OutFile (Join-Path $PluginsDir 'AdminEye.dll') -Force
+    Copy-Item $OutFile (Join-Path $PluginsDir 'AdminHelper.dll') -Force
     Write-Host "Copied to $PluginsDir. Restart the game to load it."
 }
 catch [System.IO.IOException] {

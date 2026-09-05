@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Pool of flat ground rings, one per flagged player, drawn with LineRenderers.
     internal sealed class RingRenderer
@@ -79,7 +79,7 @@ namespace AdminEye
         {
             if (_root != null) return;
 
-            _root = new GameObject("AdminEyeRings");
+            _root = new GameObject("AdminHelperRings");
             Object.DontDestroyOnLoad(_root);
             _pool.Clear();
         }

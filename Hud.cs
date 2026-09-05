@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Screen-space overlay: floating labels over watched players, a corner list, and your own readout.
     internal sealed class Hud
@@ -70,8 +70,8 @@ namespace AdminEye
             Vector3 eye = (camera != null) ? camera.transform.position : Vector3.zero;
 
             string header = revealOthers
-                ? "AdminEye  " + _sorted.Count + " watched, " + CountFlagged() + " flagged"
-                : "AdminEye  admin login required";
+                ? "AdminHelper  " + _sorted.Count + " watched, " + CountFlagged() + " flagged"
+                : "AdminHelper  admin login required";
 
             float width = 260f;
             float rowHeight = 18f;

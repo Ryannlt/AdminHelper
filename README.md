@@ -1,7 +1,7 @@
-# AdminEye
+# AdminHelper
 
-[![Latest release](https://img.shields.io/github/v/release/Ryannlt/AdminEye?label=latest&style=flat-square)](https://github.com/Ryannlt/AdminEye/releases/latest)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/Ryannlt/AdminEye/blob/main/LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/Ryannlt/AdminHelper?label=latest&style=flat-square)](https://github.com/Ryannlt/AdminHelper/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/Ryannlt/AdminHelper/blob/main/LICENSE)
 
 A [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Holdfast: Nations At War** that finds "rambos":
 players who have left their formation and are off fighting on their own. It scores every player continuously
@@ -17,10 +17,10 @@ the game from the manager. BepInEx is pulled in as a dependency, so there is not
 
 **By hand.** Install
 [BepInExPack](https://thunderstore.io/c/holdfast-nations-at-war/p/BepInEx/BepInExPack/) into the game folder and
-run the game once so it creates its folders. Then put `AdminEye.dll` here:
+run the game once so it creates its folders. Then put `AdminHelper.dll` here:
 
 ```
-Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminEye.dll
+Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper.dll
 ```
 
 ### Did it work?
@@ -28,7 +28,7 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminEye.dll
 Open `BepInEx\LogOutput.log` and look for:
 
 ```
-[Info   :   BepInEx] Loading [AdminEye 1.0.0]
+[Info   :   BepInEx] Loading [AdminHelper 1.0.0]
 ```
 
 If it is not there, the mod was not loaded. See [Troubleshooting](#troubleshooting).
@@ -53,8 +53,10 @@ Two states:
 A corner list gives you the same players sorted worst first, with scores and distance, so you know who to fly
 to.
 
-Press **F6** to hide and show the overlay. The scorer keeps running while it is hidden, so nothing is lost and a
-player already flagged is still flagged when you bring it back. Change the key with `ToggleKey`.
+The overlay starts hidden, so press **F6** to show it. It then stays as you left it, across rounds and map
+changes, until you quit the game. The scorer keeps running while it is hidden, so nothing is lost and a player
+already flagged is still flagged when you bring it back. Change the key with `ToggleKey`, or set
+`StartHudVisible` to have it up from the start.
 
 ### The two numbers
 
@@ -98,7 +100,7 @@ against bots on your own server, and turning it off gives you exactly what it so
 
 ## Settings
 
-`BepInEx\config\com.ryannlt.admineye.cfg`, written on first run. Read live, so edits apply within a second with
+`BepInEx\config\com.ryannlt.adminhelper.cfg`, written on first run. Read live, so edits apply within a second with
 no restart. Entries are grouped into `[General]`, `[Isolation]`, `[Scoring]`, `[Danger]`, `[Formation]`,
 `[Flagging]` and `[Display]` sections.
 
@@ -136,7 +138,7 @@ ConfigurationManager drawing at all.
 | `ShowOwnScore` | `true` | Your own scores plus the raw distances behind them. Works without an `rc login`. |
 | `MaxLabels` | `12` | Most floating labels at once, worst first. |
 | `ToggleKey` | `F6` | Key that hides and shows the HUD. Any `KeyCode` name. |
-| `StartHudVisible` | `true` | Whether the HUD starts visible. |
+| `StartHudVisible` | `false` | Whether the HUD starts visible when the game launches. |
 
 ## Tuning it
 
@@ -198,7 +200,7 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
 That compiles every `.cs` in the folder and copies the `.dll` into the r2modman profile's
-`BepInEx\plugins\AdminEye\`. Restart the game to load it. Add `-NoDeploy` to build without copying, which is
+`BepInEx\plugins\AdminHelper\`. Restart the game to load it. Add `-NoDeploy` to build without copying, which is
 useful while the game is running and holding the file. `-ProfileName` picks a profile other than `Dev`.
 
 `package.ps1` builds the same way and stages an uploadable Thunderstore zip in `Package\`.
@@ -228,4 +230,4 @@ will stop working rather than misbehave. Open an issue if that happens.
 
 ## Licence
 
-[MIT](https://github.com/Ryannlt/AdminEye/blob/main/LICENSE). Do what you like with it, no warranty.
+[MIT](https://github.com/Ryannlt/AdminHelper/blob/main/LICENSE). Do what you like with it, no warranty.

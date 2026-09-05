@@ -7,8 +7,8 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <AssemblyName>AdminEye</AssemblyName>
-    <RootNamespace>AdminEye</RootNamespace>
+    <AssemblyName>AdminHelper</AssemblyName>
+    <RootNamespace>AdminHelper</RootNamespace>
     <LangVersion>latest</LangVersion>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>

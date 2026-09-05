@@ -1,12 +1,12 @@
 using BepInEx.Logging;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // The only logging route, so no other file has to name the mod loader. One swap at port time.
     internal static class Log
     {
         // A static class cannot reach BaseUnityPlugin's instance logger, so it registers its own source.
-        private static readonly ManualLogSource Source = Logger.CreateLogSource("AdminEye");
+        private static readonly ManualLogSource Source = Logger.CreateLogSource("AdminHelper");
 
         public static void Info(string message)
         {

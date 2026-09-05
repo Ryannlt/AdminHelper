@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Decides whether a player is standing in something that counts as a formation.
     internal static class FormationDetector

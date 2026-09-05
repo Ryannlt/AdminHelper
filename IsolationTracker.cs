@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HoldfastGame;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Holds the continuous isolation score for every player and rebuilds the watch list each tick.
     internal sealed class IsolationTracker

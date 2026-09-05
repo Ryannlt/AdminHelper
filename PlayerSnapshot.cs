@@ -1,7 +1,7 @@
 using HoldfastGame;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // One player as of the current tick. Rebuilt each tick so nothing here outlives a respawn.
     internal struct PlayerSnapshot

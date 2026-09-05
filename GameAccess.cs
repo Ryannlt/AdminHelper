@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HoldfastGame;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Single point of contact with the game. Everything here is public client-side state, read only.
     internal static class GameAccess

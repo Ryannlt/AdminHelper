@@ -1,4 +1,4 @@
-# Builds AdminEye and stages a Thunderstore package in Package\ ready to upload.
+# Builds AdminHelper and stages a Thunderstore package in Package\ ready to upload.
 #
 #   powershell -ExecutionPolicy Bypass -File .\package.ps1
 #
@@ -11,7 +11,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$ModName    = 'AdminEye'
+$ModName    = 'AdminHelper'
 $PackageDir = Join-Path $PSScriptRoot 'Package'
 $StageDir   = Join-Path $PackageDir $ModName
 $Dll        = Join-Path $PSScriptRoot "$ModName.dll"
@@ -32,6 +32,12 @@ $image = [System.Drawing.Image]::FromFile($Icon)
 $w = $image.Width; $h = $image.Height
 $image.Dispose()
 if ($w -ne 256 -or $h -ne 256) { throw "icon.png must be exactly 256x256, this one is ${w}x${h}." }
+
+# Thunderstore caps the description at 250 characters and only says so after the upload.
+$manifestJson = Get-Content $Manifest -Raw | ConvertFrom-Json
+if ($manifestJson.description.Length -gt 250) {
+    throw "manifest description is $($manifestJson.description.Length) characters, Thunderstore allows 250."
+}
 
 # Version comes off the built DLL so there is only one place to bump it.
 $fileVersion = (Get-Item $Dll).VersionInfo.FileVersion

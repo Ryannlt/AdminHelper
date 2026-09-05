@@ -5,7 +5,7 @@ using BepInEx.Configuration;
 using HoldfastGame;
 using UnityEngine;
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Every entry is read live, so edits to the cfg apply without a restart.
     internal static class Settings
@@ -118,8 +118,8 @@ namespace AdminEye
                 "Most floating labels drawn at once, nearest first.");
             ToggleKey = config.Bind("Display", "ToggleKey", "F6",
                 "Key that hides and shows the HUD. Any UnityEngine.KeyCode name.");
-            StartHudVisible = config.Bind("Display", "StartHudVisible", true,
-                "Whether the HUD starts visible each session.");
+            StartHudVisible = config.Bind("Display", "StartHudVisible", false,
+                "Whether the HUD starts visible when the game launches. After that the toggle sticks until you quit.");
 
             _stamp = Stamp();
         }

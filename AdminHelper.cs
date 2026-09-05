@@ -7,14 +7,14 @@ using UnityEngine.SceneManagement;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
-namespace AdminEye
+namespace AdminHelper
 {
     // Scores how isolated each player is from their own side and draws the result over the ones who stay out.
-    [BepInPlugin(Guid, "AdminEye", "1.0.0")]
-    public class AdminEyeMod : BaseUnityPlugin
+    [BepInPlugin(Guid, "AdminHelper", "1.0.0")]
+    public class AdminHelperMod : BaseUnityPlugin
     {
-        // Also names the config file, BepInEx/config/com.ryannlt.admineye.cfg.
-        public const string Guid = "com.ryannlt.admineye";
+        // Also names the config file, BepInEx/config/com.ryannlt.adminhelper.cfg.
+        public const string Guid = "com.ryannlt.adminhelper";
 
         private readonly IsolationTracker _tracker = new IsolationTracker();
         private readonly RingRenderer _rings = new RingRenderer();
@@ -86,11 +86,7 @@ namespace AdminEye
                 return;
             }
 
-            if (!_wasInRound)
-            {
-                _hotkey.ResetToDefault();
-                _wasInRound = true;
-            }
+            _wasInRound = true;
 
             _accumulator += Time.deltaTime;
 
