@@ -4,13 +4,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // Kept in step with BepInPlugin below; package.ps1 reads this back off the built DLL.
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
 
 namespace AdminHelper
 {
     // Scores how isolated each player is from their own side and draws the result over the ones who stay out.
-    [BepInPlugin(Guid, "AdminHelper", "1.0.0")]
+    [BepInPlugin(Guid, "AdminHelper", "1.0.1")]
     public class AdminHelperMod : BaseUnityPlugin
     {
         // Also names the config file, BepInEx/config/com.ryannlt.adminhelper.cfg.

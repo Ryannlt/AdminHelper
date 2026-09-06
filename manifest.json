@@ -1,9 +1,9 @@
 {
   "name": "AdminHelper",
-  "version_number": "1.0.0",
+  "version_number": "1.0.1",
   "website_url": "https://github.com/Ryannlt/AdminHelper",
   "description": "A tool to assist in event admining. Lists and highlights players who are ramboing.",
   "dependencies": [
-    "BepInEx-BepInExPack-5.4.2305"
+    "HoldfastModding-BepInExPack_Holdfast-5.4.2305"
   ]
 }
