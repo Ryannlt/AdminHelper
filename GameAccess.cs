@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Single point of contact with the game. Everything here is public client-side state, read only.
     internal static class GameAccess
     {
         private static GameConsolePanel _consolePanel;
@@ -15,7 +14,6 @@ namespace AdminHelper
             get { return ClientComponentReferenceManager.ClientInstance; }
         }
 
-        // True once the server itself has authenticated an 'rc login'.
         public static bool IsLoggedInAdmin
         {
             get { return ClientRemoteConsoleAccessManager.loggedOn; }
@@ -54,7 +52,6 @@ namespace AdminHelper
             }
         }
 
-        // True while a text field owns the keyboard, so hotkeys must be ignored.
         public static bool IsTyping
         {
             get
@@ -63,7 +60,6 @@ namespace AdminHelper
                 if (client != null && client.clientChatHandler != null && client.clientChatHandler.isChatPaneOpened)
                     return true;
 
-                // FindObjectOfType is expensive, so retry on a timer rather than every frame before it exists.
                 if (_consolePanel == null && Time.unscaledTime >= _nextConsoleLookup)
                 {
                     _nextConsoleLookup = Time.unscaledTime + 2f;
@@ -74,14 +70,12 @@ namespace AdminHelper
             }
         }
 
-        // Dropped on scene change so the next lookup finds the new instance.
         public static void ClearSceneCache()
         {
             _consolePanel = null;
             _nextConsoleLookup = 0f;
         }
 
-        // Fills 'into' with every spawned and alive player, local one included. Allocation free after warmup.
         public static void CollectPlayers(List<PlayerSnapshot> into)
         {
             into.Clear();
@@ -134,7 +128,35 @@ namespace AdminHelper
             return name;
         }
 
-        // Whether an officer or sergeant has placed a form-line order that this player is standing inside.
+        public static RoundPlayer ResolvePlayer(int playerId)
+        {
+            if (playerId < 0) return null;
+
+            ClientComponentReferenceManager client = Client;
+            if (client == null || client.clientRoundPlayerManager == null) return null;
+
+            return client.clientRoundPlayerManager.ResolveRoundPlayer(playerId);
+        }
+
+        public static bool AreEnemies(int firstId, int secondId)
+        {
+            if (firstId == secondId) return false;
+
+            RoundPlayer first = ResolvePlayer(firstId);
+            RoundPlayer second = ResolvePlayer(secondId);
+            if (first == null || second == null) return true;
+
+            return AreEnemies(first, second);
+        }
+
+        public static bool AreEnemies(RoundPlayer first, RoundPlayer second)
+        {
+            if (first == null || second == null) return true;
+            if (first.PlayerStartData == null || second.PlayerStartData == null) return true;
+
+            return first.PlayerStartData.Faction != second.PlayerStartData.Faction;
+        }
+
         public static bool IsInsideOfficerLine(RoundPlayer player)
         {
             ClientComponentReferenceManager client = Client;

@@ -2,8 +2,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Owns the frame loop. BepInEx builds its manager object during the chainloader, before any scene exists,
-    // where DontDestroyOnLoad does not stick, so the mod keeps a host it can remake instead.
     internal sealed class Driver : MonoBehaviour
     {
         internal AdminHelperMod Owner;

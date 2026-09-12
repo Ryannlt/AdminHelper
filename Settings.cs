@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Every entry is read live, so edits to the cfg apply without a restart.
     internal static class Settings
     {
         public static ConfigEntry<bool> Enabled;
@@ -44,6 +43,14 @@ namespace AdminHelper
         public static ConfigEntry<int> MaxLabels;
         public static ConfigEntry<string> ToggleKey;
         public static ConfigEntry<bool> StartHudVisible;
+
+        public static ConfigEntry<bool> ClassFilterEnabled;
+        public static ConfigEntry<bool> RegimentSearchEnabled;
+
+        public static ConfigEntry<bool> MeleeMarkerEnabled;
+        public static ConfigEntry<bool> TeamkillFilterEnabled;
+        public static ConfigEntry<float> MeleeChainMetres;
+        public static ConfigEntry<float> MeleeWindowSeconds;
 
         private static readonly HashSet<PlayerClass> ExemptSet = new HashSet<PlayerClass>();
         private static string _exemptSource;
@@ -121,10 +128,23 @@ namespace AdminHelper
             StartHudVisible = config.Bind("Display", "StartHudVisible", false,
                 "Whether the HUD starts visible when the game launches. After that the toggle sticks until you quit.");
 
+            ClassFilterEnabled = config.Bind("PMenu", "ClassFilterEnabled", true,
+                "Let the P menu player search box filter by class, e.g. 'rifleman', 'surgeon' or 'cavalry'.");
+            RegimentSearchEnabled = config.Bind("PMenu", "RegimentSearchEnabled", true,
+                "Also match regiment tags in that box, ignoring punctuation and accents, so [45e] is found by 45.");
+
+            MeleeMarkerEnabled = config.Bind("KillLog", "MeleeMarkerEnabled", true,
+                "Mark each kill in the admin kill log with whether the victim was in a melee. Blank means it was not being tracked.");
+            TeamkillFilterEnabled = config.Bind("KillLog", "TeamkillFilterEnabled", true,
+                "Add a teamkills only toggle to the kill log tab, and accept 'tk' in its search box.");
+            MeleeChainMetres = config.Bind("KillLog", "MeleeChainMetres", 10f,
+                "How close a player must be to someone fighting to count as being in that melee themselves.");
+            MeleeWindowSeconds = config.Bind("KillLog", "MeleeWindowSeconds", 10f,
+                "Seconds without a hit or a block anywhere in the melee before it is treated as over.");
+
             _stamp = Stamp();
         }
 
-        // BepInEx never watches its own cfg, so an external edit only lands if the mod goes looking for it.
         public static void PollForExternalEdits()
         {
             if (_config == null || Time.unscaledTime < _nextCheck) return;
@@ -145,7 +165,6 @@ namespace AdminHelper
             }
             catch (Exception)
             {
-                // A locked or half-written file just means no reload this second.
                 return _stamp;
             }
         }
@@ -156,7 +175,6 @@ namespace AdminHelper
             return ExemptSet.Contains(playerClass);
         }
 
-        // Reparsed only when the preference string actually changes.
         private static void RefreshExemptSet()
         {
             string source = ExemptClasses.Value ?? string.Empty;
@@ -182,7 +200,6 @@ namespace AdminHelper
             }
         }
 
-        // Cached because this is read every frame and Enum.Parse allocates.
         public static KeyCode ResolveToggleKey()
         {
             string source = ToggleKey.Value ?? string.Empty;

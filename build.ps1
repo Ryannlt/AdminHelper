@@ -41,8 +41,14 @@ $refs = @(
     (Join-Path $ManagedDir 'UnityEngine.IMGUIModule.dll'),
     (Join-Path $ManagedDir 'UnityEngine.TextRenderingModule.dll'),
     (Join-Path $ManagedDir 'UnityEngine.InputLegacyModule.dll'),
+    (Join-Path $ManagedDir 'UnityEngine.UI.dll'),
+    (Join-Path $ManagedDir 'UnityEngine.UIModule.dll'),
+    (Join-Path $ManagedDir 'Unity.TextMeshPro.dll'),
     (Join-Path $ManagedDir 'Assembly-CSharp.dll'),
     (Join-Path $ManagedDir 'HoldfastEnums.Runtime.dll'),
+    (Join-Path $ManagedDir 'HoldfastUtils.Runtime.dll'),
+    (Join-Path $ManagedDir 'ScorableActions.Runtime.dll'),
+    (Join-Path $ManagedDir 'uLink.Runtime.dll'),
     (Join-Path $BepInExDir 'BepInEx.dll'),
     (Join-Path $BepInExDir '0Harmony.dll')
 )

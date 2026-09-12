@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Decides whether a player is standing in something that counts as a formation.
     internal static class FormationDetector
     {
         private const int MaxScratch = 16;
@@ -12,8 +11,6 @@ namespace AdminHelper
         private static readonly float[] ScratchZ = new float[MaxScratch];
         private static readonly float[] ScratchDistanceSquared = new float[MaxScratch];
 
-        // Any one of the three tests is enough. The officer-line test is exact, the other two cover regiments
-        // that line up manually without ever placing the order.
         public static bool IsInFormation(PlayerSnapshot self, List<PlayerSnapshot> friendlies)
         {
             if (GameAccess.IsInsideOfficerLine(self.Player)) return true;
@@ -26,7 +23,6 @@ namespace AdminHelper
             return PerpendicularSpread(self, nearby) <= Settings.LineResidual.Value;
         }
 
-        // Fills the scratch arrays with the nearest friendlies inside 'radius', closest first. Returns the count.
         private static int CollectNearest(PlayerSnapshot self, List<PlayerSnapshot> friendlies, float radius, int max)
         {
             if (max > MaxScratch) max = MaxScratch;
@@ -44,7 +40,6 @@ namespace AdminHelper
                 float distanceSquared = dx * dx + dz * dz;
                 if (distanceSquared > radiusSquared) continue;
 
-                // Insertion sort into the scratch arrays, dropping the furthest once full.
                 if (count == max && distanceSquared >= ScratchDistanceSquared[count - 1]) continue;
 
                 int slot = (count < max) ? count : count - 1;
@@ -65,7 +60,6 @@ namespace AdminHelper
             return count;
         }
 
-        // The scratch is sorted nearest first, so the matches are a prefix.
         private static int CountWithin(int count, float radius)
         {
             float radiusSquared = radius * radius;
@@ -76,7 +70,6 @@ namespace AdminHelper
             return count;
         }
 
-        // RMS distance of the group from its own best-fit line, via the smaller eigenvalue of the 2D covariance.
         private static float PerpendicularSpread(PlayerSnapshot self, int count)
         {
             int total = count + 1;

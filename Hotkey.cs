@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // The HUD toggle. Set once at startup and then session scoped, so a round change does not undo a press.
     internal sealed class Hotkey
     {
         private bool _visible;

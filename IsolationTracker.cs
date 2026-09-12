@@ -4,15 +4,11 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Holds the continuous isolation score for every player and rebuilds the watch list each tick.
     internal sealed class IsolationTracker
     {
-        // A single enemy at contact is worth this much of the threat a full crowd carries.
         private const float SoloEnemyFloor = 0.5f;
 
-        // Ceiling on drawn markers, so a collapsing team cannot fill the screen.
         private const int MaxWatched = 32;
-
 
         private sealed class State
         {
@@ -29,7 +25,6 @@ namespace AdminHelper
 
         private int _tick;
 
-        // Everyone worth drawing, hottest first. Keyed to the live score, not the dwell timer.
         public readonly List<ScoredPlayer> Watched = new List<ScoredPlayer>();
         public ScoredPlayer LocalScore;
         public bool HasLocalScore;
@@ -83,7 +78,6 @@ namespace AdminHelper
 
                 bool scorable = IsScorable(self);
 
-                // Dwell decays at the recovery rate, fast enough that returning to the line clears the label.
                 if (scorable && isolation >= Settings.RamboThreshold.Value) state.Dwell += dt;
                 else state.Dwell = Mathf.Max(0f, state.Dwell - dt * Mathf.Max(1f, Settings.RecoverMultiplier.Value));
 
@@ -100,7 +94,6 @@ namespace AdminHelper
                 scored.EnemyCount = enemyCount;
                 scored.InFormation = inFormation;
 
-                // Drawn on the live score, so a marker appears the moment someone drifts and clears as they return.
                 if (scorable && isolation >= Settings.RingThreshold.Value) Watched.Add(scored);
 
                 if (self.PlayerId == localId)
@@ -114,7 +107,6 @@ namespace AdminHelper
             DropStaleStates();
         }
 
-        // Hottest first, so the cap and the label limit both keep the ones that matter.
         private void SortAndCapWatched()
         {
             Watched.Sort(delegate(ScoredPlayer a, ScoredPlayer b) { return b.Isolation.CompareTo(a.Isolation); });
@@ -128,7 +120,6 @@ namespace AdminHelper
             return !Settings.IsExempt(self.Class);
         }
 
-        // Maps a distance onto 0..1 across the near and far thresholds.
         private static float Curve(float distance)
         {
             float near = Settings.ClusterNearMetres.Value;
@@ -136,7 +127,6 @@ namespace AdminHelper
             return Mathf.Clamp01((distance - near) / (far - near));
         }
 
-        // Metres from the midpoint of the two nearest living friendlies.
         private float MateDistance(PlayerSnapshot self, List<PlayerSnapshot> friendlies)
         {
             float nearestSquared = float.MaxValue;
@@ -198,7 +188,6 @@ namespace AdminHelper
             nearestDistance = (nearestSquared == float.MaxValue) ? float.MaxValue : Mathf.Sqrt(nearestSquared);
         }
 
-        // How much of a player's isolation is actually a threat: 0 alone in a field, 1 deep in the enemy formation.
         private static float EnemyThreat(float nearestDistance, int countInRadius)
         {
             float radius = Settings.EnemyRadius.Value;
@@ -209,7 +198,6 @@ namespace AdminHelper
             return proximity * (SoloEnemyFloor + (1f - SoloEnemyFloor) * crowd);
         }
 
-        // Exponential approach, frame-rate independent, falling faster than it climbs.
         private static void Integrate(State state, float target, float dt)
         {
             float rise = Mathf.Max(0.05f, Settings.RiseSeconds.Value);
@@ -219,7 +207,6 @@ namespace AdminHelper
             state.Isolation += (target - state.Isolation) * (1f - Mathf.Exp(-k * dt));
         }
 
-        // Built once per tick so the per-player scoring is a lookup rather than another pass.
         private void BucketByFaction()
         {
             foreach (KeyValuePair<FactionCountry, List<PlayerSnapshot>> bucket in _byFaction) bucket.Value.Clear();
@@ -252,7 +239,6 @@ namespace AdminHelper
             return state;
         }
 
-        // Forget players who have been dead or gone for a while so a respawn starts clean.
         private void DropStaleStates()
         {
             _stale.Clear();

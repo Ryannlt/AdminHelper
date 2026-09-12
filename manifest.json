@@ -1,8 +1,8 @@
 {
   "name": "AdminHelper",
-  "version_number": "1.0.1",
+  "version_number": "1.1.0",
   "website_url": "https://github.com/Ryannlt/AdminHelper",
-  "description": "A tool to assist in event admining. Lists and highlights players who are ramboing.",
+  "description": "A tool to assist in event admining. Highlights players who are ramboing, finds players by class or regiment, and marks whether a teamkill victim was in a melee.",
   "dependencies": [
     "HoldfastModding-BepInExPack_Holdfast-5.4.2305"
   ]

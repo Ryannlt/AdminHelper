@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Pool of flat ground rings, one per flagged player, drawn with LineRenderers.
     internal sealed class RingRenderer
     {
         private const int Segments = 48;
@@ -28,7 +27,6 @@ namespace AdminHelper
                 Color colour = ColourFor(flagged[i].Isolation);
                 ring.startColor = ring.endColor = colour;
 
-                // URP Unlit ignores vertex colour, so the material carries the colour and each ring owns one.
                 if (ring.sharedMaterial != null) ring.sharedMaterial.color = colour;
 
                 BuildCircle(flagged[i].Position);
@@ -66,7 +64,6 @@ namespace AdminHelper
             }
         }
 
-        // Yellow where the marker first appears, red once the player is flagged.
         private static Color ColourFor(int isolation)
         {
             float low = Settings.RingThreshold.Value;
@@ -115,7 +112,6 @@ namespace AdminHelper
             return ring;
         }
 
-        // The game runs URP, so its unlit shader is the one guaranteed to be in the build.
         private Shader ResolveShader()
         {
             if (_shader != null) return _shader;

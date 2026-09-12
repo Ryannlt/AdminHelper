@@ -29,7 +29,7 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\Admin
 Open `BepInEx\LogOutput.log` and look for:
 
 ```
-[Info   :   BepInEx] Loading [AdminHelper 1.0.1]
+[Info   :   BepInEx] Loading [AdminHelper 1.1.0]
 ```
 
 If it is not there, the mod was not loaded. See [Troubleshooting](#troubleshooting).
@@ -58,6 +58,55 @@ The overlay starts hidden, so press **F6** to show it. It then stays as you left
 changes, until you quit the game. The scorer keeps running while it is hidden, so nothing is lost and a player
 already flagged is still flagged when you bring it back. Change the key with `ToggleKey`, or set
 `StartHudVisible` to have it up from the start.
+
+### Finding players by class or regiment
+
+The game's P menu already lists round players with a class icon, but its search box only matches names and IDs.
+This mod widens it, so typing a class or a regiment narrows the list and the counter above shows how many.
+
+**By class:**
+
+- **A class name.** `rifleman`, `surgeon`, `sapper`, `grenadier`. A prefix is enough, so `rifle` works.
+- **A shorthand.** `line` for line infantry, plus `officer`, `sgt`, `medic`, `flag`, `drummer` and `gunner`.
+- **A group.** `cavalry` for hussars and dragoons, or `artillery`, `naval`, `sailor`, `officers`.
+
+**By regiment.** Tags are full of brackets, dots and dashes nobody wants to type, so both sides are stripped to
+letters and digits before matching, and accents are folded. `[45e]` is found by `45e` or `45`, and `7.Fuß` is
+found by `7fus`. Player names are matched the same way, so punctuation stops hiding people there too.
+
+Nothing else changes. A name still searches names, a number still searches IDs, clearing the box brings the full
+list back, and every row keeps its normal admin buttons so you can act on whoever you find. This part needs no
+`rc login`, because it only filters a list the game already shows you.
+
+It lists, it does not judge. Whether a regiment should be taking that class is your call. The two halves turn off
+separately with `ClassFilterEnabled` and `RegimentSearchEnabled`.
+
+### Reading the kill log
+
+Teamkills usually earn a revive, unless the victim was in a melee. The admin kill log now says which, so the
+call can be made from the log instead of from memory.
+
+Every kill is marked in the space between the two names:
+
+| Mark | Meaning |
+| --- | --- |
+| `IN MELEE` | The victim was in a melee when they died. |
+| `NO MELEE` | They were not. |
+| blank | The mod was not tracking, so it does not know. Never read this as a clean kill. |
+
+A player counts as being in a melee from the moment they are part of one **against the other side**: their melee
+attack hits an enemy, their attack is blocked by one, or they block one. Friendly swings are ignored, so
+teamkilling a man in your own spawn does not mark him as fighting. It spreads to everyone within
+`MeleeChainMetres` of them, whichever side they are on, so standing in a scrum counts even if your own blade
+never lands. It ends once nobody in that group has hit or blocked for `MeleeWindowSeconds`. A kill from range
+keeps its distance and gains the mark after it, so a shot teamkill reads `12.3m  IN MELEE`.
+
+The blank state is deliberate. The mod can only watch while you are in the round, so kills from before you joined
+are marked blank rather than guessed at.
+
+**Teamkills only.** The tab gets an `ALL KILLS` button that switches to `TEAMKILLS` and hides everything else.
+Typing `tk` in the kill log search box does the same, which is also the fallback if the button cannot be placed.
+Suicides are not counted as teamkills.
 
 ### The two numbers
 
@@ -103,7 +152,7 @@ against bots on your own server, and turning it off gives you exactly what it so
 
 `BepInEx\config\com.ryannlt.adminhelper.cfg`, written on first run. Read live, so edits apply within a second with
 no restart. Entries are grouped into `[General]`, `[Isolation]`, `[Scoring]`, `[Danger]`, `[Formation]`,
-`[Flagging]` and `[Display]` sections.
+`[Flagging]`, `[Display]`, `[PMenu]` and `[KillLog]` sections.
 
 For an in-game editor instead of a text file, [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager)
 works, but only after setting `HideManagerGameObject = true` under `[Chainloader]` in
@@ -140,6 +189,12 @@ ConfigurationManager drawing at all.
 | `MaxLabels` | `12` | Most floating labels at once, worst first. |
 | `ToggleKey` | `F6` | Key that hides and shows the HUD. Any `KeyCode` name. |
 | `StartHudVisible` | `false` | Whether the HUD starts visible when the game launches. |
+| `ClassFilterEnabled` | `true` | Let the P menu player search box filter by class. |
+| `RegimentSearchEnabled` | `true` | Also match regiment tags there, ignoring punctuation and accents. |
+| `MeleeMarkerEnabled` | `true` | Mark each kill log entry with whether the victim was in a melee. |
+| `TeamkillFilterEnabled` | `true` | Add the teamkills only toggle, and accept `tk` in the kill log search box. |
+| `MeleeChainMetres` | `10` | How close to a fight a player must be to count as in that melee. |
+| `MeleeWindowSeconds` | `10` | Seconds without a hit or block anywhere in the melee before it counts as over. |
 
 ## Tuning it
 

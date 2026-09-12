@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // One player as of the current tick. Rebuilt each tick so nothing here outlives a respawn.
     internal struct PlayerSnapshot
     {
         public RoundPlayer Player;
@@ -16,7 +15,6 @@ namespace AdminHelper
         public bool IsArtillery;
     }
 
-    // What the scorer produced for one player, ready to draw.
     internal struct ScoredPlayer
     {
         public int PlayerId;
@@ -27,7 +25,6 @@ namespace AdminHelper
         public float DwellSeconds;
         public bool Flagged;
 
-        // Raw inputs, kept for the diagnostic readout so thresholds can be picked from real rounds.
         public float MateDistance;
         public float EnemyDistance;
         public int EnemyCount;

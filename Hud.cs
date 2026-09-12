@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace AdminHelper
 {
-    // Screen-space overlay: floating labels over watched players, a corner list, and your own readout.
     internal sealed class Hud
     {
         private static readonly Color WatchColour = new Color(1f, 0.82f, 0.15f);
@@ -28,7 +27,6 @@ namespace AdminHelper
                 if (Settings.ShowLabels.Value) DrawLabels();
             }
 
-            // Always drawn, so the panel is proof the mod is alive and the toggle key is doing something.
             if (Settings.ShowCornerList.Value) DrawCornerList(revealOthers);
 
             if (Settings.ShowOwnScore.Value && tracker.HasLocalScore) DrawOwnScore(tracker.LocalScore);
@@ -93,7 +91,6 @@ namespace AdminHelper
             }
         }
 
-        // The raw inputs sit under the scores, which is what makes the thresholds pickable from a real round.
         private void DrawOwnScore(ScoredPlayer local)
         {
             string text = "ISO: " + local.Isolation + "   DGR: " + local.Danger +
@@ -114,7 +111,6 @@ namespace AdminHelper
             return distance.ToString("0.0") + "m";
         }
 
-        // The tracker already orders by score, so the worst sit at the top of the panel and survive the label cap.
         private void SortByHeat(List<ScoredPlayer> watched)
         {
             _sorted.Clear();
