@@ -157,6 +157,44 @@ namespace AdminHelper
             return first.PlayerStartData.Faction != second.PlayerStartData.Faction;
         }
 
+        public static bool IsCarryingFlag(int playerId, out CarryableObjectType flag)
+        {
+            flag = CarryableObjectType.None;
+            if (playerId < 0) return false;
+
+            ClientComponentReferenceManager client = Client;
+            if (client == null || client.clientCarryableObjectManager == null) return false;
+
+            CarryableObjectType left;
+            CarryableObjectType right;
+            if (!client.clientCarryableObjectManager.ResolvePlayerCarryableObjects(playerId, out left, out right))
+                return false;
+
+            if (FlagTypes.IsFlag(left))
+            {
+                flag = left;
+                return true;
+            }
+
+            if (FlagTypes.IsFlag(right))
+            {
+                flag = right;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static InteractableObjectCollection Interactables
+        {
+            get
+            {
+                ClientComponentReferenceManager client = Client;
+                if (client == null || client.clientEnvironmentInteractableObjectManager == null) return null;
+                return client.clientEnvironmentInteractableObjectManager.AllObjects;
+            }
+        }
+
         public static bool IsInsideOfficerLine(RoundPlayer player)
         {
             ClientComponentReferenceManager client = Client;

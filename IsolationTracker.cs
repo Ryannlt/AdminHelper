@@ -15,6 +15,9 @@ namespace AdminHelper
             public float Isolation;
             public float Dwell;
             public int LastSeenTick;
+            public float GraceUntil;
+            public bool WasInMelee;
+            public bool WasFlagged;
         }
 
         private readonly Dictionary<int, State> _states = new Dictionary<int, State>();
@@ -22,6 +25,7 @@ namespace AdminHelper
         private readonly Dictionary<FactionCountry, List<PlayerSnapshot>> _byFaction =
             new Dictionary<FactionCountry, List<PlayerSnapshot>>();
         private readonly List<int> _stale = new List<int>();
+        private readonly AfkTracker _afk = new AfkTracker();
 
         private int _tick;
 
@@ -31,6 +35,7 @@ namespace AdminHelper
 
         public void Reset()
         {
+            _afk.Reset();
             _states.Clear();
             _byFaction.Clear();
             Watched.Clear();
@@ -88,7 +93,14 @@ namespace AdminHelper
                 scored.Isolation = isolation;
                 scored.Danger = danger;
                 scored.DwellSeconds = state.Dwell;
-                scored.Flagged = scorable && state.Dwell >= Settings.RamboHoldSeconds.Value;
+                bool rawFlag = scorable && state.Dwell >= Settings.RamboHoldSeconds.Value;
+                bool graced = UpdateGrace(state, self.PlayerId, rawFlag);
+                float still = Settings.AfkMarkEnabled.Value ? _afk.Observe(self) : 0f;
+
+                scored.Flagged = rawFlag && !graced;
+                scored.InHonestMelee = graced;
+                scored.Afk = Settings.AfkMarkEnabled.Value && still >= Mathf.Max(5f, Settings.AfkSeconds.Value);
+                scored.AfkSeconds = still;
                 scored.MateDistance = mateDistance;
                 scored.EnemyDistance = enemyDistance;
                 scored.EnemyCount = enemyCount;
@@ -105,6 +117,30 @@ namespace AdminHelper
 
             SortAndCapWatched();
             DropStaleStates();
+            _afk.Prune();
+        }
+
+        private static bool UpdateGrace(State state, int playerId, bool rawFlag)
+        {
+            bool enabled = Settings.MeleeGraceEnabled != null && Settings.MeleeGraceEnabled.Value;
+            bool inMelee = enabled && MeleeTracker.Query(playerId) == MeleeTracker.State.InMelee;
+
+            if (inMelee)
+            {
+                bool eligible = state.WasInMelee ? state.GraceUntil > 0f : !state.WasFlagged;
+                if (eligible) state.GraceUntil = Time.time + GraceSeconds();
+            }
+
+            state.WasInMelee = inMelee;
+            state.WasFlagged = rawFlag;
+
+            return enabled && Time.time < state.GraceUntil;
+        }
+
+        private static float GraceSeconds()
+        {
+            float window = (Settings.MeleeWindowSeconds == null) ? 10f : Settings.MeleeWindowSeconds.Value;
+            return Mathf.Max(1f, window) + Mathf.Max(0f, Settings.RamboHoldSeconds.Value);
         }
 
         private void SortAndCapWatched()

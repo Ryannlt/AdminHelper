@@ -29,7 +29,7 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\Admin
 Open `BepInEx\LogOutput.log` and look for:
 
 ```
-[Info   :   BepInEx] Loading [AdminHelper 1.1.0]
+[Info   :   BepInEx] Loading [AdminHelper 1.1.1]
 ```
 
 If it is not there, the mod was not loaded. See [Troubleshooting](#troubleshooting).
@@ -46,10 +46,13 @@ From then on, anyone drifting gets a ring at their feet and a floating label wit
 appears as soon as ISO passes `RingThreshold` and clears the moment they come back, because it follows the live
 score rather than a timer.
 
-Two states:
+Four states:
 
 - **ISOLATED**, yellow. Out of position right now. Worth a look.
 - **RAMBO**, red. Has held above `RamboThreshold` for `RamboHoldSeconds`, and the label counts the seconds.
+- **FIGHT**, blue. In a melee they were not already flagged for, so they are held back from flagging while it
+  lasts. See [Melee grace](#melee-grace).
+- **AFK**, grey. Has not moved for a while. See [Players standing still](#players-standing-still).
 
 A corner list gives you the same players sorted worst first, with scores and distance, so you know who to fly
 to.
@@ -108,6 +111,42 @@ are marked blank rather than guessed at.
 Typing `tk` in the kill log search box does the same, which is also the fallback if the button cannot be placed.
 Suicides are not counted as teamkills.
 
+### Flags
+
+Finding the flags on a 150 player field is most of admining a CTF event, so with `FlagHighlightEnabled` on and
+the overlay up, every flag in the round is marked: a cyan ring and a beam at the carrier's feet or at the flag
+where it lies, a label saying who has it, and a line at the top of the corner list with the distance to it.
+
+This one ships **off**, because it has nothing to mark outside a flag game mode.
+
+Both halves of a flag's life are covered. A **carried** flag is read from what each player has in hand, so it
+follows them live. A flag **on the ground** is the map's own pickup object, which is where the flag sits at the
+start of a round and where it lands when a carrier dies, so it is marked with the faction it belongs to.
+
+On the minimap, the carrier's own pointer is tinted cyan rather than given a second marker, and a flag lying on
+the ground gets a marker of its own. The minimap's scale and rotation are not exposed to a mod, so they are
+solved from the game's own player pointers; if too few are visible to solve it, the world marks and the corner
+list still work and only the minimap marker is skipped.
+
+Nothing here is tied to one CTF mod. Every flag carryable the game has counts - the faction flags a CTF mod moves
+around, and the custom bearing flag - so any mod or map using them is picked up. Like everything else that
+reveals another player, it needs an `rc login`. `FlagMinimapMarkers` turns off the minimap half on its own.
+
+### Players standing still
+
+A player who has not moved for `AfkSeconds` is drawn grey, with `AFK` after their name in the corner list and
+their time still in the label. They keep their ring and their place in the list, so someone parked where they
+should not be is still visible, just not read as someone worth flying to. Moving more than `AfkMoveMetres`
+clears it on the next tick. `AfkMarkEnabled` turns it off.
+
+### Melee grace
+
+The last man standing in a fight his regiment started is not a rambo. So when a player enters a melee without
+already being flagged, flagging is held off until `MeleeWindowSeconds` after that melee ends, plus the usual
+`RamboHoldSeconds`, and the label reads `FIGHT` instead. Their dwell keeps building underneath, so if they are
+still out on their own when the grace lapses they flag at once rather than starting over. A player who charged in
+alone was already flagged when the melee started, so he gets no grace. `MeleeGrace` turns it off.
+
 ### The two numbers
 
 | | Meaning |
@@ -152,7 +191,7 @@ against bots on your own server, and turning it off gives you exactly what it so
 
 `BepInEx\config\com.ryannlt.adminhelper.cfg`, written on first run. Read live, so edits apply within a second with
 no restart. Entries are grouped into `[General]`, `[Isolation]`, `[Scoring]`, `[Danger]`, `[Formation]`,
-`[Flagging]`, `[Display]`, `[PMenu]` and `[KillLog]` sections.
+`[Flagging]`, `[CTF]`, `[AFK]`, `[Display]`, `[PMenu]` and `[KillLog]` sections.
 
 For an in-game editor instead of a text file, [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager)
 works, but only after setting `HideManagerGameObject = true` under `[Chainloader]` in
@@ -182,6 +221,12 @@ ConfigurationManager drawing at all.
 | `RamboHoldSeconds` | `5` | Seconds of dwell above the threshold before flagging. |
 | `ScoreCavalry` | `false` | Score cavalry too. |
 | `ExemptClasses` | empty | Comma-separated class names never flagged, e.g. `Surgeon,Sapper`. |
+| `MeleeGrace` | `true` | Hold off flagging a player whose melee started before they were flagged. |
+| `FlagHighlightEnabled` | `false` | Highlight flags in the world and in the corner list. |
+| `FlagMinimapMarkers` | `true` | Also tint the carrier on the minimap and mark dropped flags there. |
+| `AfkMarkEnabled` | `true` | Grey out players who have stopped moving. |
+| `AfkSeconds` | `90` | Seconds without moving before a player counts as AFK. |
+| `AfkMoveMetres` | `0.75` | Metres of movement that resets the AFK timer. |
 | `ShowRings` | `true` | Ground ring under each watched player. |
 | `ShowLabels` | `true` | Floating name and score label. |
 | `ShowCornerList` | `true` | Corner list of watched players, worst first. |

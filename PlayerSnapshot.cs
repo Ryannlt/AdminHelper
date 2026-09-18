@@ -29,5 +29,9 @@ namespace AdminHelper
         public float EnemyDistance;
         public int EnemyCount;
         public bool InFormation;
+
+        public bool Afk;
+        public float AfkSeconds;
+        public bool InHonestMelee;
     }
 }

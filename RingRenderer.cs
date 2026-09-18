@@ -7,7 +7,11 @@ namespace AdminHelper
     {
         private const int Segments = 48;
         private const float Radius = 1.6f;
+        private const float FlagRadius = 2.4f;
+        private const float BeamHeight = 6f;
         private const float GroundOffset = 0.05f;
+
+        private static readonly Color FlagColour = new Color(0.3f, 0.95f, 1f);
 
         private readonly List<LineRenderer> _pool = new List<LineRenderer>();
         private readonly Vector3[] _points = new Vector3[Segments + 1];
@@ -15,28 +19,51 @@ namespace AdminHelper
         private GameObject _root;
         private Shader _shader;
 
-        public void Draw(List<ScoredPlayer> flagged)
+        public void Draw(List<ScoredPlayer> watched, List<FlagMark> flags)
         {
             EnsureRoot();
 
-            for (int i = 0; i < flagged.Count; i++)
+            int used = 0;
+
+            for (int i = 0; i < watched.Count; i++)
             {
-                LineRenderer ring = Resolve(i);
-                ring.gameObject.SetActive(true);
+                LineRenderer ring = Resolve(used++);
+                Apply(ring, ColourFor(watched[i].Isolation));
 
-                Color colour = ColourFor(flagged[i].Isolation);
-                ring.startColor = ring.endColor = colour;
-
-                if (ring.sharedMaterial != null) ring.sharedMaterial.color = colour;
-
-                BuildCircle(flagged[i].Position);
+                BuildCircle(watched[i].Position, Radius);
+                ring.positionCount = Segments + 1;
                 ring.SetPositions(_points);
             }
 
-            for (int i = flagged.Count; i < _pool.Count; i++)
+            for (int i = 0; i < flags.Count; i++)
+            {
+                LineRenderer ring = Resolve(used++);
+                Apply(ring, FlagColour);
+
+                BuildCircle(flags[i].Position, FlagRadius);
+                ring.positionCount = Segments + 1;
+                ring.SetPositions(_points);
+
+                LineRenderer beam = Resolve(used++);
+                Apply(beam, FlagColour);
+
+                beam.positionCount = 2;
+                beam.SetPosition(0, flags[i].Position + Vector3.up * GroundOffset);
+                beam.SetPosition(1, flags[i].Position + Vector3.up * BeamHeight);
+            }
+
+            for (int i = used; i < _pool.Count; i++)
             {
                 if (_pool[i] != null) _pool[i].gameObject.SetActive(false);
             }
+        }
+
+        private static void Apply(LineRenderer line, Color colour)
+        {
+            line.gameObject.SetActive(true);
+            line.startColor = line.endColor = colour;
+
+            if (line.sharedMaterial != null) line.sharedMaterial.color = colour;
         }
 
         public void HideAll()
@@ -54,13 +81,13 @@ namespace AdminHelper
             _root = null;
         }
 
-        private void BuildCircle(Vector3 centre)
+        private void BuildCircle(Vector3 centre, float radius)
         {
             float y = centre.y + GroundOffset;
             for (int i = 0; i <= Segments; i++)
             {
                 float angle = i * Mathf.PI * 2f / Segments;
-                _points[i] = new Vector3(centre.x + Mathf.Cos(angle) * Radius, y, centre.z + Mathf.Sin(angle) * Radius);
+                _points[i] = new Vector3(centre.x + Mathf.Cos(angle) * radius, y, centre.z + Mathf.Sin(angle) * radius);
             }
         }
 

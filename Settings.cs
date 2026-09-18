@@ -47,6 +47,15 @@ namespace AdminHelper
         public static ConfigEntry<bool> ClassFilterEnabled;
         public static ConfigEntry<bool> RegimentSearchEnabled;
 
+        public static ConfigEntry<bool> MeleeGraceEnabled;
+
+        public static ConfigEntry<bool> FlagHighlightEnabled;
+        public static ConfigEntry<bool> FlagMinimapMarkers;
+
+        public static ConfigEntry<bool> AfkMarkEnabled;
+        public static ConfigEntry<float> AfkSeconds;
+        public static ConfigEntry<float> AfkMoveMetres;
+
         public static ConfigEntry<bool> MeleeMarkerEnabled;
         public static ConfigEntry<bool> TeamkillFilterEnabled;
         public static ConfigEntry<float> MeleeChainMetres;
@@ -112,6 +121,20 @@ namespace AdminHelper
                 "Score cavalry too. Off by default since cavalry operating apart is not a rambo.");
             ExemptClasses = config.Bind("Flagging", "ExemptClasses", "",
                 "Comma-separated PlayerClass names that are never flagged, e.g. Surgeon,Sapper.");
+            MeleeGraceEnabled = config.Bind("Flagging", "MeleeGrace", true,
+                "Do not flag a player who was not already ramboing when their melee started, until the melee window has run out. Covers the last one or two left in a fight their mates started.");
+
+            FlagHighlightEnabled = config.Bind("CTF", "FlagHighlightEnabled", false,
+                "Highlight flags: a ring and label on the carrier or on a flag lying on the ground, and a line in the corner list. Off by default, since it only matters on a flag game mode.");
+            FlagMinimapMarkers = config.Bind("CTF", "FlagMinimapMarkers", true,
+                "Also mark them on the minimap: the carrier's own pointer is tinted, and a flag on the ground gets a marker of its own. Needs FlagHighlightEnabled.");
+
+            AfkMarkEnabled = config.Bind("AFK", "AfkMarkEnabled", true,
+                "Grey out players who have not moved for a while, so a parked player is not read as someone worth watching.");
+            AfkSeconds = config.Bind("AFK", "AfkSeconds", 90f,
+                "Seconds without moving before a player counts as AFK.");
+            AfkMoveMetres = config.Bind("AFK", "AfkMoveMetres", 0.75f,
+                "Metres a player has to move to reset their AFK timer.");
 
             ShowRings = config.Bind("Display", "ShowRings", true,
                 "Draw a ground ring under each watched player.");

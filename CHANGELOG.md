@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.1.1
+
+Three additions for CTF events.
+
+**Flags are highlighted.** With the overlay up, every flag in the round gets a cyan ring and a beam, either at
+the carrier's feet or where the flag is lying, a label saying who has it, and a line at the top of the corner
+list with the distance. On the minimap the carrier's own pointer is tinted rather than doubled up, and a flag on
+the ground gets a marker of its own, named by its faction. Every flag carryable the game has counts, so this is
+not tied to one CTF mod. It ships **off**, since it only matters on a flag game mode - turn on
+`FlagHighlightEnabled` under the new `[CTF]` section.
+
+**Players standing still are greyed out.** Anyone who has not moved for `AfkSeconds` is drawn grey with an `AFK`
+tag, so a parked player is not read as someone worth flying to. They keep their ring and their place in the list.
+New `[AFK]` settings.
+
+**Melee grace.** A player who enters a melee without already being flagged is not flagged while it lasts, plus
+the usual window afterwards, and the label reads `FIGHT`. The last one or two left alive in a fight their mates
+started no longer read as rambos, while a player who runs in alone still flags. Their dwell keeps building
+underneath, so nothing is lost if they really are out on their own. Turn it off with `MeleeGrace`.
+
 ## 1.1.0
 
 Two additions, both inside the game's own P menu rather than a separate window.
