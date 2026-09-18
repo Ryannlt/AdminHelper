@@ -5,12 +5,12 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
+[assembly: AssemblyVersion("1.1.2.0")]
+[assembly: AssemblyFileVersion("1.1.2.0")]
 
 namespace AdminHelper
 {
-    [BepInPlugin(Guid, "AdminHelper", "1.1.1")]
+    [BepInPlugin(Guid, "AdminHelper", "1.1.2")]
     public class AdminHelperMod : BaseUnityPlugin
     {
         public const string Guid = "com.ryannlt.adminhelper";
@@ -51,6 +51,7 @@ namespace AdminHelper
 
             GameAccess.ClearSceneCache();
             MeleeTracker.Reset();
+            RowActions.Reset();
             _tracker.Reset();
             _flags.Reset();
             _minimap.Reset();
@@ -80,6 +81,7 @@ namespace AdminHelper
         internal void Tick()
         {
             Settings.PollForExternalEdits();
+            RowActions.Tick();
 
             if (!Settings.Enabled.Value)
             {

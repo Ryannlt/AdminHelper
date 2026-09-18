@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1.2
+
+**The player search reads factions and sides.** `french`, `allied`, `austrian` and the country names behind them
+all filter the players tab, and `attackers` or `defenders` resolve to whichever faction is attacking or defending
+this round. They combine with a class, so `french cav` is French hussars and dragoons and `def surgeon` is the
+defending side's surgeons, and plurals are understood throughout. Class groups grew too: `skirmishers`,
+`rank & file`, `infantry`, `support` and `horse`. Anything the mod cannot read is handed straight back to the
+stock name and tag search, so nothing that worked before stopped working. New `FactionSearchEnabled`.
+
+**Two new buttons on a player's admin row.** `Reg TP` teleports that player to their own regiment - to the mate
+standing nearest the middle of the group, so they land in the line rather than on a straggler - and
+`Rez + Reg TP` revives a dead player first, waits for them to come back, then sends them. Both go through the
+game's own admin plumbing, and both live in the admin block, so they only exist once you are logged in. New
+`RowActionsEnabled`.
+
+Source files are now grouped into `Core`, `Game`, `Tracking`, `Overlay` and `PMenu` folders. No behaviour
+change, but `build.ps1` now recurses.
+
 ## 1.1.1
 
 Three additions for CTF events.

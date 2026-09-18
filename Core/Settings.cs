@@ -46,6 +46,8 @@ namespace AdminHelper
 
         public static ConfigEntry<bool> ClassFilterEnabled;
         public static ConfigEntry<bool> RegimentSearchEnabled;
+        public static ConfigEntry<bool> FactionSearchEnabled;
+        public static ConfigEntry<bool> RowActionsEnabled;
 
         public static ConfigEntry<bool> MeleeGraceEnabled;
 
@@ -155,6 +157,10 @@ namespace AdminHelper
                 "Let the P menu player search box filter by class, e.g. 'rifleman', 'surgeon' or 'cavalry'.");
             RegimentSearchEnabled = config.Bind("PMenu", "RegimentSearchEnabled", true,
                 "Also match regiment tags in that box, ignoring punctuation and accents, so [45e] is found by 45.");
+            RowActionsEnabled = config.Bind("PMenu", "RowActionsEnabled", true,
+                "Add 'To Regt' and 'Rez + Regt' to a player's action buttons, which put them back with their regiment.");
+            FactionSearchEnabled = config.Bind("PMenu", "FactionSearchEnabled", true,
+                "Also match factions and sides there, e.g. 'french', 'allied', 'attackers' or 'defenders'. Combines with a class, e.g. 'french cav'.");
 
             MeleeMarkerEnabled = config.Bind("KillLog", "MeleeMarkerEnabled", true,
                 "Mark each kill in the admin kill log with whether the victim was in a melee. Blank means it was not being tracked.");

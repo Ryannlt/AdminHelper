@@ -59,8 +59,13 @@ foreach ($r in $refs) {
     $cscArgs += "-r:$r"
 }
 
-$sources = Get-ChildItem -Path $PSScriptRoot -Filter '*.cs' -File
-if ($sources.Count -eq 0) { throw "No .cs files found in $PSScriptRoot" }
+# Sources sit in subfolders, so this recurses - skipping the staged package and any IDE build output.
+$skipFolders = @('Package', 'obj', 'bin')
+$sources = Get-ChildItem -Path $PSScriptRoot -Filter '*.cs' -File -Recurse | Where-Object {
+    $relative = $_.FullName.Substring($PSScriptRoot.Length).TrimStart('\')
+    $skipFolders -notcontains $relative.Split('\')[0]
+}
+if ($sources.Count -eq 0) { throw "No .cs files found under $PSScriptRoot" }
 foreach ($s in $sources) { $cscArgs += $s.FullName }
 
 Write-Host "Compiling $($sources.Count) file(s) -> $OutFile"

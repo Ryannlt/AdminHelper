@@ -40,6 +40,27 @@ namespace AdminHelper
             }
         }
 
+        public static FactionCountry AttackingFaction
+        {
+            get { return RoundFaction(true); }
+        }
+
+        public static FactionCountry DefendingFaction
+        {
+            get { return RoundFaction(false); }
+        }
+
+        private static FactionCountry RoundFaction(bool attacking)
+        {
+            ClientComponentReferenceManager client = Client;
+            if (client == null || client.clientGameModeManager == null) return FactionCountry.None;
+
+            RoundGameDetails details = client.clientGameModeManager.CurrentRoundGameDetails;
+            if (details == null) return FactionCountry.None;
+
+            return attacking ? details.AttackingFaction : details.DefendingFaction;
+        }
+
         public static int LocalPlayerId
         {
             get

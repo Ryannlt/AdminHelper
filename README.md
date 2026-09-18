@@ -29,7 +29,7 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\Admin
 Open `BepInEx\LogOutput.log` and look for:
 
 ```
-[Info   :   BepInEx] Loading [AdminHelper 1.1.1]
+[Info   :   BepInEx] Loading [AdminHelper 1.1.2]
 ```
 
 If it is not there, the mod was not loaded. See [Troubleshooting](#troubleshooting).
@@ -62,27 +62,57 @@ changes, until you quit the game. The scorer keeps running while it is hidden, s
 already flagged is still flagged when you bring it back. Change the key with `ToggleKey`, or set
 `StartHudVisible` to have it up from the start.
 
-### Finding players by class or regiment
+### Finding players by class, regiment or side
 
 The game's P menu already lists round players with a class icon, but its search box only matches names and IDs.
-This mod widens it, so typing a class or a regiment narrows the list and the counter above shows how many.
+This mod widens it, so typing a class, a regiment or a faction narrows the list and the counter above shows how
+many.
 
 **By class:**
 
 - **A class name.** `rifleman`, `surgeon`, `sapper`, `grenadier`. A prefix is enough, so `rifle` works.
 - **A shorthand.** `line` for line infantry, plus `officer`, `sgt`, `medic`, `flag`, `drummer` and `gunner`.
-- **A group.** `cavalry` for hussars and dragoons, or `artillery`, `naval`, `sailor`, `officers`.
+- **A group.** `cavalry` for hussars and dragoons, `skirmishers` for rifles and light infantry, `rank & file`
+  for the line, plus `infantry`, `artillery`, `support`, `naval`, `sailor` and `officers`.
+
+**By faction.** `british`, `french`, `prussian`, `russian`, `italian`, `austrian`, `allied`, `central`,
+`spanish`, `privateer`, `american`. Country names work too, so `france` and `britain` find the same players.
+
+**By side.** `attackers` and `defenders` resolve to whichever faction is attacking or defending this round, so
+you do not have to remember which is which. `att` and `def` are enough.
+
+**Together.** Two or three of those combine, so `french cav` is French hussars and dragoons, and
+`defenders surgeon` is the defending side's surgeons. Plurals are understood everywhere, so `officers` and
+`officer` do the same thing.
 
 **By regiment.** Tags are full of brackets, dots and dashes nobody wants to type, so both sides are stripped to
 letters and digits before matching, and accents are folded. `[45e]` is found by `45e` or `45`, and `7.Fuß` is
 found by `7fus`. Player names are matched the same way, so punctuation stops hiding people there too.
 
 Nothing else changes. A name still searches names, a number still searches IDs, clearing the box brings the full
-list back, and every row keeps its normal admin buttons so you can act on whoever you find. This part needs no
-`rc login`, because it only filters a list the game already shows you.
+list back, and every row keeps its normal admin buttons so you can act on whoever you find. Anything the mod
+cannot read as a class, faction or side is handed straight back to the name and tag search, so a regiment called
+`Light` still finds itself. This part needs no `rc login`, because it only filters a list the game already shows
+you.
 
-It lists, it does not judge. Whether a regiment should be taking that class is your call. The two halves turn off
-separately with `ClassFilterEnabled` and `RegimentSearchEnabled`.
+It lists, it does not judge. Whether a regiment should be taking that class is your call. The three halves turn
+off separately with `ClassFilterEnabled`, `FactionSearchEnabled` and `RegimentSearchEnabled`.
+
+### Sending a player back to their regiment
+
+Expanding a player's row as an admin gives the usual actions - Go To, Bring, Heal, Slap, Revive, Slay. This mod
+adds two more at the end:
+
+- **To Regt.** Teleports that player to their own regiment. The destination is the regiment mate standing
+  nearest the middle of the group, so they land in the line rather than on whichever straggler happened to be
+  closest. With no living regiment mate it falls back to their nearest living teammate.
+- **Rez + Regt.** The same thing for a dead player: it asks the server to revive them, waits for them to come
+  back, then teleports them. If the revive does not land within four seconds the teleport is dropped rather than
+  fired into nothing.
+
+Both use the game's own admin plumbing - the revive request the Revive button sends, and `rc teleport` - so the
+server authorises them exactly as it would a command you typed. They live inside the admin block of the row, so
+they only exist for a logged in admin. `RowActionsEnabled` removes them.
 
 ### Reading the kill log
 
@@ -236,6 +266,8 @@ ConfigurationManager drawing at all.
 | `StartHudVisible` | `false` | Whether the HUD starts visible when the game launches. |
 | `ClassFilterEnabled` | `true` | Let the P menu player search box filter by class. |
 | `RegimentSearchEnabled` | `true` | Also match regiment tags there, ignoring punctuation and accents. |
+| `FactionSearchEnabled` | `true` | Also match factions and sides there, and combine them with a class. |
+| `RowActionsEnabled` | `true` | Add the To Regt and Rez + Regt buttons to a player's admin actions. |
 | `MeleeMarkerEnabled` | `true` | Mark each kill log entry with whether the victim was in a melee. |
 | `TeamkillFilterEnabled` | `true` | Add the teamkills only toggle, and accept `tk` in the kill log search box. |
 | `MeleeChainMetres` | `10` | How close to a fight a player must be to count as in that melee. |
@@ -300,7 +332,7 @@ Only needed if you want to change something. Otherwise use the release above.
 powershell -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-That compiles every `.cs` in the folder and copies the `.dll` into the r2modman profile's
+That compiles every `.cs` under the repo and copies the `.dll` into the r2modman profile's
 `BepInEx\plugins\AdminHelper\`. Restart the game to load it. Add `-NoDeploy` to build without copying, which is
 useful while the game is running and holding the file. `-ProfileName` picks a profile other than `Dev`.
 
@@ -316,6 +348,16 @@ Edit `$GameDir` at the top of the script if yours differs.
 
 The `.csproj` is for IDE support only. `build.ps1` is the real build. It drives `csc` directly, which avoids
 needing a targeting pack installed.
+
+### Where things live
+
+| Folder | What is in it |
+| --- | --- |
+| `Core` | The plugin itself, its driver, settings, logging and the hotkey. |
+| `Game` | Everything that reads the game: player snapshots, faction and round lookups, text matching. |
+| `Tracking` | The scorers - isolation, formation, melee, AFK and flags. |
+| `Overlay` | What gets drawn: the HUD, the world rings and the minimap markers. |
+| `PMenu` | The patches on the game's own P menu: search, kill log and the row actions. |
 
 ### Why there is no CI build
 

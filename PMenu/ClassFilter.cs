@@ -8,8 +8,6 @@ namespace AdminHelper
 {
     internal static class ClassFilter
     {
-        public static readonly List<PlayerClass> NoMatch = new List<PlayerClass>();
-
         private static readonly Dictionary<string, PlayerClass> Aliases =
             new Dictionary<string, PlayerClass>(StringComparer.OrdinalIgnoreCase)
             {
@@ -33,7 +31,22 @@ namespace AdminHelper
                 { "captain", PlayerClass.NavalCaptain },
                 { "gren", PlayerClass.Grenadier },
                 { "cannon", PlayerClass.Cannoneer },
-                { "gunner", PlayerClass.Cannoneer }
+                { "gunner", PlayerClass.Cannoneer },
+                { "sap", PlayerClass.Sapper },
+                { "rank", PlayerClass.ArmyLineInfantry },
+                { "file", PlayerClass.ArmyLineInfantry },
+                { "rankandfile", PlayerClass.ArmyLineInfantry },
+                { "ranker", PlayerClass.ArmyLineInfantry },
+                { "rnf", PlayerClass.ArmyLineInfantry },
+                { "private", PlayerClass.ArmyLineInfantry },
+                { "doctor", PlayerClass.Surgeon },
+                { "colour", PlayerClass.FlagBearer },
+                { "color", PlayerClass.FlagBearer },
+                { "standard", PlayerClass.FlagBearer },
+                { "band", PlayerClass.Musician },
+                { "music", PlayerClass.Musician },
+                { "drum", PlayerClass.Musician },
+                { "guardsman", PlayerClass.Guard }
             };
 
         private static readonly Dictionary<string, PlayerClass[]> Groups =
@@ -41,6 +54,38 @@ namespace AdminHelper
             {
                 { "cav", new[] { PlayerClass.Hussar, PlayerClass.Dragoon } },
                 { "cavalry", new[] { PlayerClass.Hussar, PlayerClass.Dragoon } },
+                { "horse", new[] { PlayerClass.Hussar, PlayerClass.Dragoon } },
+                { "skirm", new[] { PlayerClass.Rifleman, PlayerClass.LightInfantry } },
+                { "skirmish", new[] { PlayerClass.Rifleman, PlayerClass.LightInfantry } },
+                { "skirmisher", new[] { PlayerClass.Rifleman, PlayerClass.LightInfantry } },
+                {
+                    "inf", new[]
+                    {
+                        PlayerClass.ArmyLineInfantry, PlayerClass.LightInfantry,
+                        PlayerClass.Rifleman, PlayerClass.Grenadier, PlayerClass.Guard
+                    }
+                },
+                {
+                    "foot", new[]
+                    {
+                        PlayerClass.ArmyLineInfantry, PlayerClass.LightInfantry,
+                        PlayerClass.Rifleman, PlayerClass.Grenadier, PlayerClass.Guard
+                    }
+                },
+                {
+                    "infantry", new[]
+                    {
+                        PlayerClass.ArmyLineInfantry, PlayerClass.LightInfantry,
+                        PlayerClass.Rifleman, PlayerClass.Grenadier, PlayerClass.Guard
+                    }
+                },
+                {
+                    "support", new[]
+                    {
+                        PlayerClass.Surgeon, PlayerClass.Sapper, PlayerClass.Musician,
+                        PlayerClass.FlagBearer, PlayerClass.Carpenter
+                    }
+                },
                 { "arty", new[] { PlayerClass.Cannoneer, PlayerClass.Deprecated_Rocketeer } },
                 { "artillery", new[] { PlayerClass.Cannoneer, PlayerClass.Deprecated_Rocketeer } },
                 { "sailor", new[] { PlayerClass.NavalSailor, PlayerClass.NavalSailor2 } },
@@ -144,14 +189,14 @@ namespace AdminHelper
 
             string text = SearchText(__instance);
 
-            List<PlayerClass> classes = ClassFilter.NoMatch;
-            if (Enabled(Settings.ClassFilterEnabled)) classes = ClassFilter.Resolve(text);
+            SearchTerms terms = PlayerSearch.Resolve(text,
+                Enabled(Settings.ClassFilterEnabled), Enabled(Settings.FactionSearchEnabled));
 
-            if (classes.Count == 1)
+            if (terms.Resolved && terms.Factions.Count == 0 && terms.Classes.Count == 1)
             {
                 query.PlayerName = null;
                 query.PlayerID = null;
-                query.PlayerClass = classes[0];
+                query.PlayerClass = terms.Classes[0];
                 return true;
             }
 
@@ -159,14 +204,14 @@ namespace AdminHelper
 
             bool searchTags = tag.Length >= 2;
 
-            if (classes.Count == 0 && !searchTags)
+            if (!terms.Resolved && !searchTags)
             {
                 query.PlayerClass = null;
                 return true;
             }
 
             query.PlayerClass = null;
-            if (classes.Count > 0)
+            if (terms.Resolved)
             {
                 query.PlayerName = null;
                 query.PlayerID = null;
@@ -179,10 +224,9 @@ namespace AdminHelper
                 ClientRoundPlayer player = ___roundPlayers[i];
                 if (player == null || player.PlayerBase == null) continue;
 
-                if (classes.Count > 0)
+                if (terms.Resolved)
                 {
-                    PlayerSpawnData start = player.PlayerStartData;
-                    if (start != null && classes.Contains(start.ClassType)) ___roundPlayersListFiltered.Add(player);
+                    if (terms.Matches(player.PlayerStartData)) ___roundPlayersListFiltered.Add(player);
                     continue;
                 }
 

@@ -1,6 +1,6 @@
 {
   "name": "AdminHelper",
-  "version_number": "1.1.1",
+  "version_number": "1.1.2",
   "website_url": "https://github.com/Ryannlt/AdminHelper",
   "description": "A tool to assist in event admining. Highlights players who are ramboing, highlights CTF flags, greys out players who are standing still, finds players by class or regiment, and marks whether a teamkill victim was in a melee.",
   "dependencies": [
