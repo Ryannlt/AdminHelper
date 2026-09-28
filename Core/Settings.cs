@@ -135,13 +135,13 @@ namespace AdminHelper
                 "Do not flag a player who was not already ramboing when their melee started, until the melee window has run out. Covers the last one or two left in a fight their mates started.");
 
             FlagHighlightEnabled = config.Bind("CTF", "FlagHighlightEnabled", false,
-                "Track flags. Admins get a glow and a label on every flag in its faction's colour, and flags go on the minimap (see FlagMinimapMarkers). Off by default, since it only matters on a flag game mode.");
-            FlagMinimapMarkers = config.Bind("CTF", "FlagMinimapMarkers", true,
+                "Track flags. Admins get a glow on every flag in its faction's colour, and flags are drawn on the Map tab. ShowFlagLabels and FlagMinimapMarkers add labels and minimap markers.");
+            FlagMinimapMarkers = config.Bind("CTF", "FlagMinimapMarkers", false,
                 "Mark flags on the minimap by the game's own rules: blue on your side, red on the enemy's, and the enemy's only while their faction is revealed. A carried flag counts as the carrier's. Needs FlagHighlightEnabled.");
-            ShowFlagLabels = config.Bind("CTF", "ShowFlagLabels", true,
-                "Label each flag with its faction, or with who is carrying it. Separate from the player labels.");
-            FlagMinimapAlways = config.Bind("CTF", "FlagMinimapAlways", true,
-                "Admins see every flag on the minimap whatever the reveal rules. Needs FlagHighlightEnabled and an rc login.");
+            ShowFlagLabels = config.Bind("CTF", "ShowFlagLabels", false,
+                "Label each flag with its faction, or with who is carrying it. Separate from the player labels. Needs FlagHighlightEnabled.");
+            FlagMinimapAlways = config.Bind("CTF", "FlagMinimapAlways", false,
+                "Admins see every flag on the minimap whatever the reveal rules. Needs FlagMinimapMarkers and an rc login.");
 
             AfkMarkEnabled = config.Bind("AFK", "AfkMarkEnabled", true,
                 "Grey out players who have not moved for a while, so a parked player is not read as someone worth watching.");
@@ -186,8 +186,8 @@ namespace AdminHelper
             MeleeWindowSeconds = config.Bind("KillLog", "MeleeWindowSeconds", 10f,
                 "Seconds without a hit or a block anywhere in the melee before it is treated as over.");
 
-            MapEnabled = config.Bind("Map", "MapEnabled", false,
-                "Add a Map tab to the P menu: an overhead picture of the battle with every player drawn by class in their faction's colour, and admin actions on them. Rambo outlines and flags are drawn on it while those are showing. Off by default.");
+            MapEnabled = config.Bind("Map", "MapEnabled", true,
+                "Add a Map tab to the P menu: an overhead picture of the battle with every player drawn by class in their faction's colour, and admin actions on them. Rambo outlines are drawn on it while the overlay is showing, and flags with FlagHighlightEnabled.");
 
             _toggleKey = new KeyBinding(ToggleKey, KeyCode.F6);
             _spectatePrevKey = new KeyBinding(SpectatePrevKey, KeyCode.LeftBracket);

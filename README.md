@@ -1,7 +1,7 @@
 # AdminHelper
 
 [![Latest release](https://img.shields.io/github/v/release/Ryannlt/AdminHelper?label=latest&style=flat-square)](https://github.com/Ryannlt/AdminHelper/releases/latest)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/Ryannlt/AdminHelper/blob/main/LICENSE)
+[![Licence](https://img.shields.io/badge/licence-MIT-blue?style=flat-square)](https://github.com/Ryannlt/AdminHelper/blob/main/LICENSE)
 
 AdminHelper is a [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Holdfast: Nations At War**. It scores
 every player on their distance from their own side and marks players who stay out of formation (rambos). It also
@@ -155,8 +155,7 @@ The square toggle next to the search box shows teamkills only and changes the ti
 
 ## Map
 
-The Map tab is off by default. Turn it on with **Map tab** under **Mods > AdminHelper > Map**, or with
-`MapEnabled`.
+The Map tab is on by default. **Map tab** under **Mods > AdminHelper > Map**, or `MapEnabled`, turns it off.
 
 The tab shows an overhead image of the current map, with each player drawn as their class icon in their
 faction's colour.
@@ -174,18 +173,20 @@ faction's colour.
 
 ## Flags
 
-`FlagHighlightEnabled` turns on flag tracking. It is off by default.
+All flag settings are off by default.
 
-While the overlay is showing, each flag glows in its faction's colour and has a label with the flag's faction or
-its carrier's name. A carried flag follows its carrier, and a dropped flag is marked where it lies.
+| Setting | Effect |
+| --- | --- |
+| `FlagHighlightEnabled` | Tracks flags. While the overlay is showing, each flag glows in its faction's colour. Flags are also drawn on the Map tab. Requires an `rc login`. |
+| `ShowFlagLabels` | Labels each glowing flag with its faction or its carrier's name. |
+| `FlagMinimapMarkers` | Shows flags on the minimap by the game's reveal rules. Your side's flags are blue. Enemy flags are red and only show while their faction is revealed. |
+| `FlagMinimapAlways` | Shows every flag on the minimap to admins, whatever the reveal rules. Requires an `rc login`. |
 
-On the minimap, flags follow the game's reveal rules. Your side's flags are blue. Enemy flags are red and only
-show while their faction is revealed. `FlagMinimapAlways` shows every flag to admins.
+`ShowFlagLabels` and `FlagMinimapMarkers` need `FlagHighlightEnabled`. `FlagMinimapAlways` needs
+`FlagMinimapMarkers`.
 
-Tracking covers every flag carryable in the game, including the custom bearing flag, whichever mod or map places
-it. It requires an `rc login`.
-
-`FlagMinimapMarkers` turns off the minimap markers and `ShowFlagLabels` turns off the labels.
+A carried flag follows its carrier, and a dropped flag is marked where it lies. Tracking covers every flag
+carryable in the game, including the custom bearing flag, whichever mod or map places it.
 
 ## AFK players
 
@@ -260,10 +261,10 @@ It needs `HideManagerGameObject = true` under `[Chainloader]` in `BepInEx\config
 | `ScoreCavalry` | `false` | Score cavalry. |
 | `ExemptClasses` | empty | Comma separated class names that are never flagged, for example `Surgeon,Sapper`. |
 | `MeleeGrace` | `true` | Turns on [melee grace](#melee-grace). |
-| `FlagHighlightEnabled` | `false` | Tracks flags in the world, on the minimap and on the map. |
-| `FlagMinimapMarkers` | `true` | Shows flags on the minimap. |
-| `ShowFlagLabels` | `true` | Labels each flag with its faction or carrier. |
-| `FlagMinimapAlways` | `true` | Shows every flag on the minimap to admins. |
+| `FlagHighlightEnabled` | `false` | Tracks flags in the world and on the Map tab. |
+| `FlagMinimapMarkers` | `false` | Shows flags on the minimap. |
+| `ShowFlagLabels` | `false` | Labels each flag with its faction or carrier. |
+| `FlagMinimapAlways` | `false` | Shows every flag on the minimap to admins. |
 | `AfkMarkEnabled` | `true` | Marks players who have stopped moving. |
 | `AfkSeconds` | `90` | Seconds without moving before a player is AFK. |
 | `AfkMoveMetres` | `0.75` | Distance a player has to move to reset the AFK timer. |
@@ -283,7 +284,7 @@ It needs `HideManagerGameObject = true` under `[Chainloader]` in `BepInEx\config
 | `TeamkillFilterEnabled` | `true` | Teamkill toggle and `tk` search in the kill log. |
 | `MeleeChainMetres` | `10` | Distance from a melee within which a player counts as in it. |
 | `MeleeWindowSeconds` | `10` | Seconds without a hit or block before a melee ends. |
-| `MapEnabled` | `false` | Shows the Map tab in the P menu. |
+| `MapEnabled` | `true` | Shows the Map tab in the P menu. |
 
 Glow style and map icon size are set in [RyLib's config](https://github.com/Ryannlt/RyLib#settings),
 `com.ryannlt.rylib.cfg`.

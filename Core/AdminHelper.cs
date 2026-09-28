@@ -138,7 +138,8 @@ namespace AdminHelper
             bool visible = OverlayVisible;
             bool worldFlags = CanReveal() && visible && Settings.FlagHighlightEnabled.Value;
             bool mapFlags = Settings.FlagHighlightEnabled.Value && Settings.FlagMinimapMarkers.Value;
-            if (worldFlags || mapFlags) _flags.Tick();
+            bool pageFlags = CanReveal() && Settings.FlagHighlightEnabled.Value && Settings.MapEnabled.Value;
+            if (worldFlags || mapFlags || pageFlags) _flags.Tick();
             else _flags.Flags.Clear();
 
             _world.Visible = CanReveal() && visible;

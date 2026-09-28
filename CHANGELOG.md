@@ -31,11 +31,12 @@ of the kill. Clicking a row opens actions for the killer and the victim.
 and to the closest friendly player when there are none.
 
 **Flags** glow in their faction's colour instead of a ring and beam, and follow the game's minimap reveal rules,
-with `FlagMinimapAlways` letting admins see all of them. New `ShowFlagLabels`. Still off by default.
+with `FlagMinimapAlways` letting admins see all of them. New `ShowFlagLabels`. Every flag setting is now off by
+default, including `FlagMinimapMarkers`.
 
-**A battle map, off by default.** A Map tab with an overhead picture of the battle, every player drawn by class in
+**A battle map.** A Map tab with an overhead picture of the battle, every player drawn by class in
 their faction's colour, a class legend, search, zoom, rambo outlines and flags, and admin actions that only fire
-after a button is pressed. Turn it on with `MapEnabled` or Mods > AdminHelper > Map.
+after a button is pressed. Turn it off with `MapEnabled` or Mods > AdminHelper > Map.
 
 ## 1.1.2
 
