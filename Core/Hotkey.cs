@@ -4,22 +4,16 @@ namespace AdminHelper
 {
     internal sealed class Hotkey
     {
-        private bool _visible;
-
-        public bool Visible
-        {
-            get { return _visible; }
-        }
-
-        public void ResetToDefault()
-        {
-            _visible = Settings.StartHudVisible.Value;
-        }
+        private RamboUiMode _lastShown = RamboUiMode.On;
 
         public void Poll()
         {
-            if (GameAccess.IsTyping) return;
-            if (Input.GetKeyDown(Settings.ResolveToggleKey())) _visible = !_visible;
+            RamboUiMode mode = Settings.RamboUi.Value;
+            if (mode != RamboUiMode.Off) _lastShown = mode;
+
+            if (!Input.GetKeyDown(Settings.ToggleKeyCode) || GameAccess.IsTyping) return;
+
+            Settings.Write(Settings.RamboUi, mode == RamboUiMode.Off ? _lastShown : RamboUiMode.Off);
         }
     }
 }

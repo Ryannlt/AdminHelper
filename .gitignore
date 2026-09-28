@@ -12,6 +12,10 @@ Package/
 *.user
 *.suo
 
+# Photoshop
+*.psd
+*.psb
+
 # OS
 Thumbs.db
 desktop.ini

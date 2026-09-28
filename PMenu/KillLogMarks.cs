@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using HoldfastGame;
+using UnityEngine;
 
 namespace AdminHelper
 {
@@ -8,12 +9,15 @@ namespace AdminHelper
     {
         public MeleeTracker.State Melee;
         public bool Teamkill;
+        public string KillerColour = string.Empty;
+        public string VictimColour = string.Empty;
     }
 
     internal static class KillLogMarks
     {
         public const string InMeleeText = "IN MELEE";
-        public const string NoMeleeText = "NO MELEE";
+        public const string MeleeIcon = "hui-trait-sword-specialisation";
+        public const string MeleeIconSize = "125%";
 
         private static readonly Dictionary<KillLogInfo, KillMark> Marks = new Dictionary<KillLogInfo, KillMark>();
 
@@ -65,24 +69,55 @@ namespace AdminHelper
             mark.Melee = Marked() && victim != null
                 ? MeleeTracker.Query(victim.NetworkPlayerID)
                 : MeleeTracker.State.Unknown;
+            mark.KillerColour = Colour(killer);
+            mark.VictimColour = Colour(victim);
 
             KillLogMarks.Record(info, mark);
             Stamp(info, mark);
         }
 
+        private static string Colour(ClientRoundPlayer player)
+        {
+            Color colour;
+            if (player == null || !AdminHelperMod.TryStateColour(player.NetworkPlayerID, out colour)) return string.Empty;
+            return ColorUtility.ToHtmlStringRGB(colour);
+        }
+
         private static void Stamp(KillLogInfo info, KillMark mark)
         {
-            string text;
-            if (mark.Melee == MeleeTracker.State.InMelee) text = KillLogMarks.InMeleeText;
-            else if (mark.Melee == MeleeTracker.State.NotInMelee) text = KillLogMarks.NoMeleeText;
-            else return;
+            if (mark.Melee != MeleeTracker.State.InMelee) return;
 
+            string icon = RyLib.TextIcons.Tag(KillLogMarks.MeleeIcon);
+            string text = (icon == null) ? KillLogMarks.InMeleeText : "</size><size=" + KillLogMarks.MeleeIconSize + ">" + icon + "</size><size=75%>";
             info.KillRange = string.IsNullOrEmpty(info.KillRange) ? text : info.KillRange + "  " + text;
         }
 
         private static bool Marked()
         {
             return Settings.MeleeMarkerEnabled != null && Settings.MeleeMarkerEnabled.Value;
+        }
+    }
+
+    [HarmonyPatch(typeof(UIAdminPlayerKillLogPanelRow), nameof(UIAdminPlayerKillLogPanelRow.Setup))]
+    internal static class KillLogRowColourPatch
+    {
+        private static void Postfix(UIAdminPlayerKillLogPanelRow __instance, KillLogInfo killLogInfo)
+        {
+            if (killLogInfo == null || __instance.scoreLogUiEntry == null) return;
+            if (Settings.RamboUi.Value == RamboUiMode.Off || !AdminHelperMod.CanReveal()) return;
+
+            KillMark mark = KillLogMarks.For(killLogInfo);
+            if (mark == null || (mark.KillerColour.Length == 0 && mark.VictimColour.Length == 0)) return;
+
+            __instance.scoreLogUiEntry.BuildScoreLogEntry(killLogInfo.KillerIcon, Paint(killLogInfo.KillerName, mark.KillerColour),
+                string.Empty, killLogInfo.KillMethod, killLogInfo.VictimIcon, Paint(killLogInfo.VictimName, mark.VictimColour),
+                string.Empty, killLogInfo.KillRange, false, killLogInfo.KillerIsVictim);
+        }
+
+        private static string Paint(string name, string hex)
+        {
+            if (string.IsNullOrEmpty(name) || hex.Length == 0) return name;
+            return "<color=#" + hex + ">" + name + "</color>";
         }
     }
 
@@ -191,6 +226,7 @@ namespace AdminHelper
             }
 
             KillLogTabs.Show(__instance);
+            KillLogTip.Show(__instance);
         }
     }
 

@@ -18,6 +18,7 @@ namespace AdminHelper
             public float GraceUntil;
             public bool WasInMelee;
             public bool WasFlagged;
+            public bool EpisodeHonest;
         }
 
         private readonly Dictionary<int, State> _states = new Dictionary<int, State>();
@@ -30,8 +31,6 @@ namespace AdminHelper
         private int _tick;
 
         public readonly List<ScoredPlayer> Watched = new List<ScoredPlayer>();
-        public ScoredPlayer LocalScore;
-        public bool HasLocalScore;
 
         public void Reset()
         {
@@ -39,14 +38,12 @@ namespace AdminHelper
             _states.Clear();
             _byFaction.Clear();
             Watched.Clear();
-            HasLocalScore = false;
         }
 
         public void Tick(float dt)
         {
             _tick++;
             Watched.Clear();
-            HasLocalScore = false;
 
             GameAccess.CollectPlayers(_players);
             if (_players.Count == 0)
@@ -56,7 +53,6 @@ namespace AdminHelper
             }
 
             BucketByFaction();
-            int localId = GameAccess.LocalPlayerId;
 
             for (int i = 0; i < _players.Count; i++)
             {
@@ -88,6 +84,7 @@ namespace AdminHelper
 
                 ScoredPlayer scored;
                 scored.PlayerId = self.PlayerId;
+                scored.Body = (self.Player == null) ? null : self.Player.PlayerObject;
                 scored.Name = self.Name;
                 scored.Position = self.Position;
                 scored.Isolation = isolation;
@@ -95,7 +92,7 @@ namespace AdminHelper
                 scored.DwellSeconds = state.Dwell;
                 bool rawFlag = scorable && state.Dwell >= Settings.RamboHoldSeconds.Value;
                 bool graced = UpdateGrace(state, self.PlayerId, rawFlag);
-                float still = Settings.AfkMarkEnabled.Value ? _afk.Observe(self) : 0f;
+                float still = (Settings.AfkMarkEnabled.Value && !self.IsBot) ? _afk.Observe(self) : 0f;
 
                 scored.Flagged = rawFlag && !graced;
                 scored.InHonestMelee = graced;
@@ -107,12 +104,6 @@ namespace AdminHelper
                 scored.InFormation = inFormation;
 
                 if (scorable && isolation >= Settings.RingThreshold.Value) Watched.Add(scored);
-
-                if (self.PlayerId == localId)
-                {
-                    LocalScore = scored;
-                    HasLocalScore = true;
-                }
             }
 
             SortAndCapWatched();
@@ -125,16 +116,17 @@ namespace AdminHelper
             bool enabled = Settings.MeleeGraceEnabled != null && Settings.MeleeGraceEnabled.Value;
             bool inMelee = enabled && MeleeTracker.Query(playerId) == MeleeTracker.State.InMelee;
 
-            if (inMelee)
-            {
-                bool eligible = state.WasInMelee ? state.GraceUntil > 0f : !state.WasFlagged;
-                if (eligible) state.GraceUntil = Time.time + GraceSeconds();
-            }
+            if (inMelee && !state.WasInMelee) state.EpisodeHonest = !state.WasFlagged;
+            if (!inMelee) state.EpisodeHonest = false;
+
+            if (inMelee && state.EpisodeHonest) state.GraceUntil = Time.time + GraceSeconds();
+
+            bool graced = enabled && Time.time < state.GraceUntil;
 
             state.WasInMelee = inMelee;
-            state.WasFlagged = rawFlag;
+            state.WasFlagged = rawFlag && !graced;
 
-            return enabled && Time.time < state.GraceUntil;
+            return graced;
         }
 
         private static float GraceSeconds()

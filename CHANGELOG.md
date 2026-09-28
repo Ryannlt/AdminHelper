@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.2.0
+
+**Now built on [RyLib](https://github.com/Ryannlt/RyLib)**, a shared UI library, so AdminHelper and other mods can
+add to the P menu without breaking each other. Mod managers install it automatically; by hand, it goes in
+`BepInEx\plugins\RyLib\`.
+
+**The overlay is drawn in the world, not on a HUD.** Watched players glow through walls and terrain, with a ring
+at their feet and a label that sits under the P menu rather than over it. The corner list and your own score
+readout are gone, and with them `ShowCornerList`, `ShowOwnScore` and `StartHudVisible`. New `ShowGlow`.
+
+**Rambo UI modes.** A **Rambo UI** button under the players list steps between Always On, Freeflight (only in free
+roam) and Off, like the game's Admin Raygun, and the mode is remembered between launches. F6 still hides and
+restores it. New `RamboUi`.
+
+**Colours say how bad it is.** Isolation alone runs green to yellow; any danger turns the mark orange, deepening
+to red. FIGHT stays blue and AFK grey.
+
+**Spectate rambos with `[` and `]`.** Steps through watched players worst first, and the game's own key bar shows
+a Spectate Rambos entry in free roam and while spectating. New `SpectatePrevKey` and `SpectateNextKey`.
+
+**All settings in the P menu,** under a shared **Mods** tab: Mods > AdminHelper, grouped into Rambo Detection,
+Flags, Players Tab, Kill Log and Map.
+
+**Kill log.** A melee kill is marked with crossed swords, explained by a line under the heading; the old
+`IN MELEE` / `NO MELEE` text is gone. While Rambo UI is on, names are coloured by their rambo mark at the moment
+of the kill. Clicking a row opens actions for the killer and the victim.
+
+**Reg TP prefers the same class.** It sends a player to the middle of their regiment's players of the same class,
+and to the closest friendly player when there are none.
+
+**Flags** glow in their faction's colour instead of a ring and beam, and follow the game's minimap reveal rules,
+with `FlagMinimapAlways` letting admins see all of them. New `ShowFlagLabels`. Still off by default.
+
+**A battle map, off by default.** A Map tab with an overhead picture of the battle, every player drawn by class in
+their faction's colour, a class legend, search, zoom, rambo outlines and flags, and admin actions that only fire
+after a button is pressed. Turn it on with `MapEnabled` or Mods > AdminHelper > Map.
+
 ## 1.1.2
 
 **The player search reads factions and sides.** `french`, `allied`, `austrian` and the country names behind them

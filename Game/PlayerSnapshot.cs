@@ -13,11 +13,13 @@ namespace AdminHelper
         public PlayerClass Class;
         public bool IsCavalry;
         public bool IsArtillery;
+        public bool IsBot;
     }
 
     internal struct ScoredPlayer
     {
         public int PlayerId;
+        public GameObject Body;
         public string Name;
         public Vector3 Position;
         public int Isolation;

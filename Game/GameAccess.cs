@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using HoldfastGame;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace AdminHelper
 {
@@ -38,6 +41,36 @@ namespace AdminHelper
                 if (camera == null) camera = client.ownerCameraManager.ownerCamera;
                 return camera;
             }
+        }
+
+        public static bool InFreeflight
+        {
+            get
+            {
+                ClientComponentReferenceManager client = Client;
+                return client != null && client.clientFreeflightCameraManager != null &&
+                       client.clientFreeflightCameraManager.currentlyUsingFreeflightCamera;
+            }
+        }
+
+        public static int SpectatedPlayerId
+        {
+            get
+            {
+                ClientComponentReferenceManager client = Client;
+                if (client == null || client.clientSpectatorManager == null) return -1;
+
+                ClientRoundPlayer player = client.clientSpectatorManager.currentlySpectatingPlayer;
+                return (player == null) ? -1 : player.NetworkPlayerID;
+            }
+        }
+
+        public static void Spectate(int playerId)
+        {
+            ClientComponentReferenceManager client = Client;
+            if (client == null || client.clientSpectatorManager == null) return;
+
+            client.clientSpectatorManager.SpectateStartRequest(playerId);
         }
 
         public static FactionCountry AttackingFaction
@@ -81,6 +114,8 @@ namespace AdminHelper
                 if (client != null && client.clientChatHandler != null && client.clientChatHandler.isChatPaneOpened)
                     return true;
 
+                if (FieldFocused()) return true;
+
                 if (_consolePanel == null && Time.unscaledTime >= _nextConsoleLookup)
                 {
                     _nextConsoleLookup = Time.unscaledTime + 2f;
@@ -89,6 +124,21 @@ namespace AdminHelper
 
                 return _consolePanel != null && _consolePanel.Showing;
             }
+        }
+
+        private static bool FieldFocused()
+        {
+            EventSystem system = EventSystem.current;
+            if (system == null) return false;
+
+            GameObject selected = system.currentSelectedGameObject;
+            if (selected == null) return false;
+
+            TMP_InputField field = selected.GetComponent<TMP_InputField>();
+            if (field != null && field.isFocused) return true;
+
+            InputField legacy = selected.GetComponent<InputField>();
+            return legacy != null && legacy.isFocused;
         }
 
         public static void ClearSceneCache()
@@ -135,6 +185,7 @@ namespace AdminHelper
             snapshot.Class = player.PlayerStartData.ClassType;
             snapshot.IsCavalry = playerBase.IsCavalry;
             snapshot.IsArtillery = playerBase.IsArty;
+            snapshot.IsBot = player.PlayerRoundInformation != null && player.PlayerRoundInformation.IsCarbonPlayer;
             return true;
         }
 

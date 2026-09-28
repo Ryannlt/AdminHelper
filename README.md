@@ -13,15 +13,18 @@ your `rc login`. See [Admin only](#admin-only).
 ## Install
 
 **With a mod manager.** Install through [r2modman](https://r2modman.com/) or Thunderstore Mod Manager and launch
-the game from the manager. BepInEx is pulled in as a dependency, so there is nothing else to set up.
+the game from the manager. BepInEx and [RyLib](https://github.com/Ryannlt/RyLib) are pulled in as dependencies,
+so there is nothing else to set up.
 
 **By hand.** Install
 [BepInExPack_Holdfast](https://thunderstore.io/c/holdfast-nations-at-war/p/HoldfastModding/BepInExPack_Holdfast/)
 into the game folder and run the game once so it creates its folders. Then download `AdminHelper.dll` from the
-[latest release](https://github.com/Ryannlt/AdminHelper/releases/latest) and put it here:
+[latest release](https://github.com/Ryannlt/AdminHelper/releases/latest), and `RyLib.dll` from
+[RyLib's](https://github.com/Ryannlt/RyLib/releases/latest), and put them here:
 
 ```
 Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\AdminHelper.dll
+Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\RyLib\RyLib.dll
 ```
 
 ### Did it work?
@@ -29,10 +32,11 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\AdminHelper\Admin
 Open `BepInEx\LogOutput.log` and look for:
 
 ```
-[Info   :   BepInEx] Loading [AdminHelper 1.1.2]
+[Info   :   BepInEx] Loading [RyLib 1.0.0]
+[Info   :   BepInEx] Loading [AdminHelper 1.2.0]
 ```
 
-If it is not there, the mod was not loaded. See [Troubleshooting](#troubleshooting).
+If they are not there, the mod was not loaded. See [Troubleshooting](#troubleshooting).
 
 ## Using it
 
@@ -42,25 +46,45 @@ Log into the server console as normal:
 rc login <password>
 ```
 
-From then on, anyone drifting gets a ring at their feet and a floating label with their scores. The marker
-appears as soon as ISO passes `RingThreshold` and clears the moment they come back, because it follows the live
-score rather than a timer.
+Then turn on the rambo overlay with the **Rambo UI** button under the players list in the P menu, or press
+**F6**. The button steps through three modes, like the game's own Admin Raygun:
 
-Four states:
+- **Always On.** The overlay shows whether you are playing, spectating or in free roam.
+- **Freeflight.** It shows only while you are in free roam.
+- **Off.** Nothing is drawn. The scorer keeps running, so a player already flagged is still flagged when you
+  turn it back on.
 
-- **ISOLATED**, yellow. Out of position right now. Worth a look.
-- **RAMBO**, red. Has held above `RamboThreshold` for `RamboHoldSeconds`, and the label counts the seconds.
+F6 hides the overlay and brings it back in the mode it was in. The mode is remembered between launches. Change
+the key with `ToggleKey`.
+
+With the overlay up, anyone drifting glows through walls and terrain, gets a ring at their feet and a floating
+label with their name, state and scores. A player is marked as soon as ISO passes `RingThreshold`, and the mark
+clears the moment they come back, because it follows the live score rather than a timer.
+
+Four states, and a colour that says how bad it is:
+
+- **ISOLATED.** Out of position right now. Green when they have just crossed the threshold, turning yellow as
+  ISO climbs to 100.
+- **RAMBO.** Has held above `RamboThreshold` for `RamboHoldSeconds`, and the label counts the seconds.
 - **FIGHT**, blue. In a melee they were not already flagged for, so they are held back from flagging while it
   lasts. See [Melee grace](#melee-grace).
 - **AFK**, grey. Has not moved for a while. See [Players standing still](#players-standing-still).
 
-A corner list gives you the same players sorted worst first, with scores and distance, so you know who to fly
-to.
+Isolation alone never goes past yellow. Any danger - enemies close by - turns the mark orange, deepening to red
+as DGR reaches 100. So a red player is both out on their own and in among the enemy, and is the one to look at
+first.
 
-The overlay starts hidden, so press **F6** to show it. It then stays as you left it, across rounds and map
-changes, until you quit the game. The scorer keeps running while it is hidden, so nothing is lost and a player
-already flagged is still flagged when you bring it back. Change the key with `ToggleKey`, or set
-`StartHudVisible` to have it up from the start.
+### Spectating rambos
+
+Press **]** to spectate the worst watched player, then **]** and **[** to step through the rest. The list runs
+worst first: RAMBO, then ISOLATED and FIGHT by danger, then AFK. While the overlay is on, the game's own key bar
+in free roam and while spectating shows a **Spectate Rambos** entry as a reminder. Change the keys with
+`SpectateNextKey` and `SpectatePrevKey`.
+
+### Settings in the P menu
+
+Every switch lives in the P menu under **Mods > AdminHelper**, grouped into Rambo Detection, Flags, Players Tab,
+Kill Log and Map. They are the same settings as the config file, so a change in either shows in the other.
 
 ### Finding players by class, regiment or side
 
@@ -103,10 +127,11 @@ off separately with `ClassFilterEnabled`, `FactionSearchEnabled` and `RegimentSe
 Expanding a player's row as an admin gives the usual actions - Go To, Bring, Heal, Slap, Revive, Slay. This mod
 adds two more at the end:
 
-- **To Regt.** Teleports that player to their own regiment. The destination is the regiment mate standing
-  nearest the middle of the group, so they land in the line rather than on whichever straggler happened to be
-  closest. With no living regiment mate it falls back to their nearest living teammate.
-- **Rez + Regt.** The same thing for a dead player: it asks the server to revive them, waits for them to come
+- **Reg TP.** Teleports that player to the middle of their own regiment's players **of the same class**, to the
+  one standing nearest the middle of that group, so a rifleman lands among the regiment's riflemen rather than
+  on a straggler or in the line. With nobody of that class in their regiment, they go to the closest friendly
+  player instead.
+- **Rez + Reg TP.** The same thing for a dead player: it asks the server to revive them, waits for them to come
   back, then teleports them. If the revive does not land within four seconds the teleport is dropped rather than
   fired into nothing.
 
@@ -119,33 +144,51 @@ they only exist for a logged in admin. `RowActionsEnabled` removes them.
 Teamkills usually earn a revive, unless the victim was in a melee. The admin kill log now says which, so the
 call can be made from the log instead of from memory.
 
-Every kill is marked in the space between the two names:
-
-| Mark | Meaning |
-| --- | --- |
-| `IN MELEE` | The victim was in a melee when they died. |
-| `NO MELEE` | They were not. |
-| blank | The mod was not tracking, so it does not know. Never read this as a clean kill. |
+**Crossed swords** between the two names mean the victim was in a melee with an enemy player when they died - a
+legal melee kill. A line under the kill log's heading says so, for anyone new to it. A kill from range keeps
+its distance and gains the swords after it.
 
 A player counts as being in a melee from the moment they are part of one **against the other side**: their melee
 attack hits an enemy, their attack is blocked by one, or they block one. Friendly swings are ignored, so
 teamkilling a man in your own spawn does not mark him as fighting. It spreads to everyone within
 `MeleeChainMetres` of them, whichever side they are on, so standing in a scrum counts even if your own blade
-never lands. It ends once nobody in that group has hit or blocked for `MeleeWindowSeconds`. A kill from range
-keeps its distance and gains the mark after it, so a shot teamkill reads `12.3m  IN MELEE`.
+never lands. It ends once nobody in that group has hit or blocked for `MeleeWindowSeconds`.
 
-The blank state is deliberate. The mod can only watch while you are in the round, so kills from before you joined
-are marked blank rather than guessed at.
+No swords means no melee was seen, which is not always the same as none happening: the mod can only watch while
+you are in the round, so kills from before you joined never have them.
 
-**Teamkills only.** The tab gets an `ALL KILLS` button that switches to `TEAMKILLS` and hides everything else.
-Typing `tk` in the kill log search box does the same, which is also the fallback if the button cannot be placed.
-Suicides are not counted as teamkills.
+**Coloured names.** While Rambo UI is on, the killer's and victim's names are drawn in the colour their rambo
+mark had at the moment of the kill, so a kill by or of a flagged player stands out.
+
+**Actions.** Click a row to open actions for both players: Spectate, Go To, Bring, Slay, Revive, Heal, Slap and
+Kick for the killer and the victim side by side, plus Reg TP and Rez + Reg TP. Slay, Slap and Kick ask for a
+second click.
+
+**Teamkills only.** A square toggle beside the search box switches the log to teamkills only, and the heading
+changes to `TEAM KILL LOG`. Typing `tk` in the kill log search box does the same, which is also the fallback if
+the toggle cannot be placed. Suicides are not counted as teamkills.
+
+### The map
+
+A **Map** tab in the P menu shows an overhead picture of the battle with every player drawn by their class icon
+in their faction's colour. It ships **off**; turn it on with the **Map tab** switch under Mods > AdminHelper >
+Map, or `MapEnabled`.
+
+- **Finding people.** A legend under the map lists the classes each side can spawn, with how many are on the
+  field, and the search box filters the icons by name, class or faction. The mouse wheel zooms, dragging pans,
+  and **Battle Area** / **Whole Map** switch between the fighting and the full map.
+- **Acting on them.** Click a player to select them: Spectate, Go To, Bring, Teleport To, Slay, Reg TP and Rez + Reg TP.
+  **Teleport To** and **Teleport Me** wait for you to click a spot on the map, and a right click cancels, so a
+  stray click never moves anyone. Slay asks for a second click.
+- **Rambos and flags.** While the rambo overlay is up, watched players get an outline in their mark's colour.
+  With `FlagHighlightEnabled`, flags are drawn too.
+- **Icon size.** **Icons -** and **Icons +** under the map, or `IconSize` in RyLib's config.
 
 ### Flags
 
 Finding the flags on a 150 player field is most of admining a CTF event, so with `FlagHighlightEnabled` on and
-the overlay up, every flag in the round is marked: a cyan ring and a beam at the carrier's feet or at the flag
-where it lies, a label saying who has it, and a line at the top of the corner list with the distance to it.
+the overlay up, every flag in the round glows through walls in its faction's colour, with a label saying whose
+flag it is or who is carrying it.
 
 This one ships **off**, because it has nothing to mark outside a flag game mode.
 
@@ -153,29 +196,28 @@ Both halves of a flag's life are covered. A **carried** flag is read from what e
 follows them live. A flag **on the ground** is the map's own pickup object, which is where the flag sits at the
 start of a round and where it lands when a carrier dies, so it is marked with the faction it belongs to.
 
-On the minimap, the carrier's own pointer is tinted cyan rather than given a second marker, and a flag lying on
-the ground gets a marker of its own. The minimap's scale and rotation are not exposed to a mod, so they are
-solved from the game's own player pointers; if too few are visible to solve it, the world marks and the corner
-list still work and only the minimap marker is skipped.
+On the minimap, flags follow the game's own rules: blue on your side, red on the enemy's, and the enemy's only
+while their faction is revealed. As an admin you can see every flag regardless with `FlagMinimapAlways`, which
+is on by default.
 
 Nothing here is tied to one CTF mod. Every flag carryable the game has counts - the faction flags a CTF mod moves
 around, and the custom bearing flag - so any mod or map using them is picked up. Like everything else that
-reveals another player, it needs an `rc login`. `FlagMinimapMarkers` turns off the minimap half on its own.
+reveals another player, it needs an `rc login`. `FlagMinimapMarkers` turns off the minimap half on its own, and
+`ShowFlagLabels` the labels.
 
 ### Players standing still
 
-A player who has not moved for `AfkSeconds` is drawn grey, with `AFK` after their name in the corner list and
-their time still in the label. They keep their ring and their place in the list, so someone parked where they
-should not be is still visible, just not read as someone worth flying to. Moving more than `AfkMoveMetres`
-clears it on the next tick. `AfkMarkEnabled` turns it off.
+A player who has not moved for `AfkSeconds` is drawn grey, with `AFK` and their time in the label. They keep
+their mark, so someone parked where they should not be is still visible, just not read as someone worth flying
+to. Moving more than `AfkMoveMetres` clears it on the next tick. `AfkMarkEnabled` turns it off.
 
 ### Melee grace
 
-The last man standing in a fight his regiment started is not a rambo. So when a player enters a melee without
-already being flagged, flagging is held off until `MeleeWindowSeconds` after that melee ends, plus the usual
-`RamboHoldSeconds`, and the label reads `FIGHT` instead. Their dwell keeps building underneath, so if they are
-still out on their own when the grace lapses they flag at once rather than starting over. A player who charged in
-alone was already flagged when the melee started, so he gets no grace. `MeleeGrace` turns it off.
+The last player standing in a fight their regiment started is not a rambo. So when a player enters a melee
+without already being flagged, flagging is held off until `MeleeWindowSeconds` after that melee ends, plus the
+usual `RamboHoldSeconds`, and the label reads `FIGHT` instead. Their dwell keeps building underneath, so if they
+are still out on their own when the grace lapses they flag at once rather than starting over. A player who
+charged in alone was already flagged when the melee started, so they get no grace. `MeleeGrace` turns it off.
 
 ### The two numbers
 
@@ -210,8 +252,7 @@ you do not want flagged to `ExemptClasses`.
 
 ## Admin only
 
-Every part of this mod that reveals another player is behind `rc login`. Without it, the mod draws nothing but
-your own scores.
+Every part of this mod that reveals another player is behind `rc login`. Without it, the mod draws nothing.
 
 That gate is deliberate. A HUD that marks isolated enemies is a wallhack in everything but intent, so it is tied
 to the server's own admin authentication rather than to a setting. `RequireAdminLogin` exists so you can test
@@ -221,16 +262,12 @@ against bots on your own server, and turning it off gives you exactly what it so
 
 `BepInEx\config\com.ryannlt.adminhelper.cfg`, written on first run. Read live, so edits apply within a second with
 no restart. Entries are grouped into `[General]`, `[Isolation]`, `[Scoring]`, `[Danger]`, `[Formation]`,
-`[Flagging]`, `[CTF]`, `[AFK]`, `[Display]`, `[PMenu]` and `[KillLog]` sections.
-
-For an in-game editor instead of a text file, [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager)
-works, but only after setting `HideManagerGameObject = true` under `[Chainloader]` in
-`BepInEx\config\BepInEx.cfg`. Holdfast's BepInEx pack ships that as `false`, which stops
-ConfigurationManager drawing at all.
+`[Flagging]`, `[CTF]`, `[AFK]`, `[Display]`, `[Spectate]`, `[PMenu]`, `[KillLog]` and `[Map]` sections. Most of
+them are also switches in the P menu, under Mods > AdminHelper.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| `Enabled` | `true` | Master switch. Off stops the scorer as well as the HUD. |
+| `Enabled` | `true` | Master switch. Off stops the scorer as well as the overlay. |
 | `TickHz` | `5` | Scoring ticks per second. |
 | `RequireAdminLogin` | `true` | Only reveal other players after an `rc login`. |
 | `ClusterNearMetres` | `10` | Distance from your two nearest mates at which isolation starts counting. |
@@ -246,38 +283,44 @@ ConfigurationManager drawing at all.
 | `LineResidual` | `2` | Metres of spread either side of the line still counted as a line. |
 | `ClusterMinMates` | `3` | Mates close by that count as a square or skirmisher knot. |
 | `ClusterFormationRadius` | `8` | Radius for the tight cluster test. |
-| `RingThreshold` | `40` | ISO at which a marker appears. Follows the live score, so it clears on return. |
+| `RingThreshold` | `40` | ISO at which a mark appears. Follows the live score, so it clears on return. |
 | `RamboThreshold` | `75` | ISO at which the dwell timer starts. |
 | `RamboHoldSeconds` | `5` | Seconds of dwell above the threshold before flagging. |
 | `ScoreCavalry` | `false` | Score cavalry too. |
 | `ExemptClasses` | empty | Comma-separated class names never flagged, e.g. `Surgeon,Sapper`. |
 | `MeleeGrace` | `true` | Hold off flagging a player whose melee started before they were flagged. |
-| `FlagHighlightEnabled` | `false` | Highlight flags in the world and in the corner list. |
-| `FlagMinimapMarkers` | `true` | Also tint the carrier on the minimap and mark dropped flags there. |
+| `FlagHighlightEnabled` | `false` | Track flags: glow and label them, and mark them on the minimap and the map. |
+| `FlagMinimapMarkers` | `true` | The minimap half of that. |
+| `ShowFlagLabels` | `true` | Label each flag with its faction or its carrier. |
+| `FlagMinimapAlways` | `true` | Admins see every flag on the minimap, whatever the reveal rules. |
 | `AfkMarkEnabled` | `true` | Grey out players who have stopped moving. |
 | `AfkSeconds` | `90` | Seconds without moving before a player counts as AFK. |
 | `AfkMoveMetres` | `0.75` | Metres of movement that resets the AFK timer. |
+| `RamboUi` | `Off` | When the overlay shows: `On`, `FreeflightOnly` or `Off`. |
+| `ToggleKey` | `F6` | Key that hides the overlay and brings it back. Any `KeyCode` name. |
 | `ShowRings` | `true` | Ground ring under each watched player. |
 | `ShowLabels` | `true` | Floating name and score label. |
-| `ShowCornerList` | `true` | Corner list of watched players, worst first. |
-| `ShowOwnScore` | `true` | Your own scores plus the raw distances behind them. Works without an `rc login`. |
+| `ShowGlow` | `true` | Glow around watched players and flags, visible through walls. |
 | `MaxLabels` | `12` | Most floating labels at once, worst first. |
-| `ToggleKey` | `F6` | Key that hides and shows the HUD. Any `KeyCode` name. |
-| `StartHudVisible` | `false` | Whether the HUD starts visible when the game launches. |
+| `SpectateNextKey` | `RightBracket` | Spectate the next watched player, worst first. |
+| `SpectatePrevKey` | `LeftBracket` | Spectate the previous one. |
 | `ClassFilterEnabled` | `true` | Let the P menu player search box filter by class. |
 | `RegimentSearchEnabled` | `true` | Also match regiment tags there, ignoring punctuation and accents. |
 | `FactionSearchEnabled` | `true` | Also match factions and sides there, and combine them with a class. |
-| `RowActionsEnabled` | `true` | Add the To Regt and Rez + Regt buttons to a player's admin actions. |
-| `MeleeMarkerEnabled` | `true` | Mark each kill log entry with whether the victim was in a melee. |
+| `RowActionsEnabled` | `true` | Add Reg TP and Rez + Reg TP to a player's admin actions. |
+| `MeleeMarkerEnabled` | `true` | Crossed swords on kill log entries where the victim was in a melee. |
 | `TeamkillFilterEnabled` | `true` | Add the teamkills only toggle, and accept `tk` in the kill log search box. |
 | `MeleeChainMetres` | `10` | How close to a fight a player must be to count as in that melee. |
 | `MeleeWindowSeconds` | `10` | Seconds without a hit or block anywhere in the melee before it counts as over. |
+| `MapEnabled` | `false` | Add the Map tab to the P menu. |
+
+Glow style and map icon size belong to [RyLib](https://github.com/Ryannlt/RyLib#settings), in
+`com.ryannlt.rylib.cfg`.
 
 ## Tuning it
 
-`ShowOwnScore` is on by default and shows the raw inputs under your scores: how far you are from your two
-nearest mates, how far the nearest enemy is, whether you count as in formation, and your dwell time. Walk away
-from your own line and watch those move. Every threshold below is picked from that one readout.
+Every threshold comes down to distance, and the labels show ISO and DGR live, so the quickest way to tune is to
+watch a few players you know are out of position and compare their numbers with the table below.
 
 **The scale is set by two numbers.** The score climbs towards the raw distance signal and stops there, so a
 player is only ever flagged if their distance alone clears the threshold. With the defaults:
@@ -286,12 +329,12 @@ player is only ever flagged if their distance alone clears the threshold. With t
 | --- | --- |
 | under 10 | 0 |
 | 15 | 25 |
-| 18 | 40, a marker appears |
+| 18 | 40, a mark appears |
 | 20 | 50 |
 | 25 | 75, flagged as a rambo |
 | 30 and beyond | 100 |
 
-So a marker appears at about **18 m** out and the rambo flag needs **more than 25 m** held for long enough:
+So a mark appears at about **18 m** out and the rambo flag needs **more than 25 m** held for long enough:
 roughly 8 seconds to cross, plus `RamboHoldSeconds` on top.
 
 - **Too many false positives?** Raise `ClusterFarMetres`, which stretches the whole scale, or raise
@@ -309,14 +352,17 @@ the player is genuinely back.
 **Nothing in the log at all, or no log.** BepInEx is not running. Check that `winhttp.dll` and a `BepInEx`
 folder sit next to `Holdfast NaW.exe`. If you use a mod manager, launch the game from it rather than from Steam.
 
+**AdminHelper is not loaded and the log mentions RyLib.** RyLib is missing or older than AdminHelper needs.
+Install it, or update it, alongside AdminHelper.
+
 **Mod loads but nothing is drawn.** You are almost certainly not logged into the server console. Run
-`rc login <password>` and try again. If that is not it, check `Enabled` and press the toggle key.
+`rc login <password>` and try again. If that is not it, check `Enabled` and that Rambo UI is not `Off`.
 
 **Nothing is drawn and the log has no `scene loaded` line.** The mod lost its frame loop. Open an issue with
 `BepInEx\LogOutput.log`; the `driver awake`, `driver destroyed` and `scene loaded` lines say what happened.
 
-**Rings are missing but labels work.** The ring shader could not be found. Set `ShowRings` to false and open an
-issue with your log.
+**The map shows a grid instead of a picture.** The overhead picture could not be taken on this map. Open an
+issue with your log; the RyLib lines about the overhead map say why.
 
 **The game crashes on launch after adding the mod.** Remove the `.dll`, launch to confirm the game is fine, then
 open an issue with `BepInEx\LogOutput.log` attached.
@@ -325,7 +371,7 @@ open an issue with `BepInEx\LogOutput.log` attached.
 
 Only needed if you want to change something. Otherwise use the release above.
 
-**Requires:** the game installed, BepInEx installed in an r2modman profile, and a
+**Requires:** the game installed, BepInEx and RyLib installed in an r2modman profile, and a
 [.NET SDK](https://dotnet.microsoft.com/download) for the compiler.
 
 ```
@@ -334,7 +380,8 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 
 That compiles every `.cs` under the repo and copies the `.dll` into the r2modman profile's
 `BepInEx\plugins\AdminHelper\`. Restart the game to load it. Add `-NoDeploy` to build without copying, which is
-useful while the game is running and holding the file. `-ProfileName` picks a profile other than `Dev`.
+useful while the game is running and holding the file. `-ProfileName` picks a profile other than `Dev`. Build
+and deploy RyLib first when changing both, since AdminHelper compiles against the copy in the profile.
 
 `package.ps1` builds the same way and stages an uploadable Thunderstore zip in `Package\`.
 
@@ -353,11 +400,11 @@ needing a targeting pack installed.
 
 | Folder | What is in it |
 | --- | --- |
-| `Core` | The plugin itself, its driver, settings, logging and the hotkey. |
+| `Core` | The plugin itself, its driver, settings, logging, the overlay hotkey and rambo spectating. |
 | `Game` | Everything that reads the game: player snapshots, faction and round lookups, text matching. |
 | `Tracking` | The scorers - isolation, formation, melee, AFK and flags. |
-| `Overlay` | What gets drawn: the HUD, the world rings and the minimap markers. |
-| `PMenu` | The patches on the game's own P menu: search, kill log and the row actions. |
+| `Overlay` | What gets drawn, handed to RyLib: the world marks, the minimap flags and the map layer. |
+| `PMenu` | The P menu: the Mods tab settings, search, kill log and the row actions. |
 
 ### Why there is no CI build
 

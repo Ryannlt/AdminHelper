@@ -7,10 +7,15 @@ namespace AdminHelper
 {
     internal struct FlagMark
     {
+        public int Key;
+        public CarryableObjectType Type;
+        public FactionCountry Side;
         public Vector3 Position;
         public int PlayerId;
         public string Name;
         public bool Carried;
+        public GameObject Follow;
+        public GameObject Glow;
     }
 
     internal static class FlagTypes
@@ -20,6 +25,26 @@ namespace AdminHelper
         public static bool IsFlag(CarryableObjectType type)
         {
             return Types.Contains(type);
+        }
+
+        public static FactionCountry Faction(CarryableObjectType type)
+        {
+            switch (type)
+            {
+                case CarryableObjectType.FlagBritish: return FactionCountry.British;
+                case CarryableObjectType.FlagFrench: return FactionCountry.French;
+                case CarryableObjectType.FlagPrussian: return FactionCountry.Prussian;
+                case CarryableObjectType.FlagRussian: return FactionCountry.Russian;
+                case CarryableObjectType.FlagItalian: return FactionCountry.Italian;
+                case CarryableObjectType.FlagAustrian: return FactionCountry.Austrian;
+                case CarryableObjectType.FlagAllied: return FactionCountry.Allied;
+                case CarryableObjectType.FlagCentral: return FactionCountry.Central;
+                case CarryableObjectType.FlagPrivateer: return FactionCountry.Privateer;
+                case CarryableObjectType.FlagSpanish: return FactionCountry.Spanish;
+                case CarryableObjectType.FlagARBritish: return FactionCountry.ARBritish;
+                case CarryableObjectType.FlagARAmerican: return FactionCountry.ARAmerican;
+                default: return FactionCountry.None;
+            }
         }
 
         public static string Label(CarryableObjectType type)
@@ -56,6 +81,9 @@ namespace AdminHelper
             public RoundPlayer Player;
             public int PlayerId;
             public string Name;
+            public GameObject Body;
+            public GameObject Flag;
+            public FactionCountry Faction;
         }
 
         public readonly List<FlagMark> Flags = new List<FlagMark>();
@@ -107,10 +135,15 @@ namespace AdminHelper
                 if (!GameAccess.IsCarryingFlag(carrier.PlayerId, out held)) continue;
 
                 FlagMark mark;
+                mark.Key = carrier.PlayerId;
+                mark.Type = held;
+                mark.Side = carrier.Faction;
                 mark.Position = player.PlayerTransformData.position;
                 mark.PlayerId = carrier.PlayerId;
                 mark.Name = carrier.Name;
                 mark.Carried = true;
+                mark.Follow = carrier.Body;
+                mark.Glow = (carrier.Flag != null) ? carrier.Flag : carrier.Body;
                 Flags.Add(mark);
             }
 
@@ -121,10 +154,15 @@ namespace AdminHelper
                 if (pickup == null || !pickup.gameObject.activeInHierarchy) continue;
 
                 FlagMark mark;
+                mark.Key = pickup.GetInstanceID();
+                mark.Type = pickup.carryableObjectType;
+                mark.Side = FlagTypes.Faction(pickup.carryableObjectType);
                 mark.Position = pickup.transform.position;
                 mark.PlayerId = -1;
                 mark.Name = FlagTypes.Label(pickup.carryableObjectType);
                 mark.Carried = false;
+                mark.Follow = pickup.gameObject;
+                mark.Glow = pickup.gameObject;
                 Flags.Add(mark);
             }
         }
@@ -145,10 +183,26 @@ namespace AdminHelper
                 carrier.Player = player.Player;
                 carrier.PlayerId = player.PlayerId;
                 carrier.Name = player.Name;
+                carrier.Body = (player.Player == null) ? null : player.Player.PlayerObject;
+                carrier.Flag = FlagModel(carrier.Body);
+                carrier.Faction = player.Faction;
                 _carriers.Add(carrier);
             }
 
             _players.Clear();
+        }
+
+        private static GameObject FlagModel(GameObject body)
+        {
+            if (body == null) return null;
+
+            CarryableObjectModel[] models = body.GetComponentsInChildren<CarryableObjectModel>(false);
+            for (int i = 0; i < models.Length; i++)
+            {
+                if (FlagTypes.IsFlag(models[i].carryableItemType)) return models[i].gameObject;
+            }
+
+            return null;
         }
 
         private void RescanPickups()

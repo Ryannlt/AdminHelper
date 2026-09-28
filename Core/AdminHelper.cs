@@ -1,26 +1,38 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: AssemblyVersion("1.1.2.0")]
-[assembly: AssemblyFileVersion("1.1.2.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace AdminHelper
 {
-    [BepInPlugin(Guid, "AdminHelper", "1.1.2")]
+    [BepInPlugin(Guid, "AdminHelper", "1.2.0")]
+    [BepInDependency(RyLib.RyLibPlugin.Guid)]
     public class AdminHelperMod : BaseUnityPlugin
     {
         public const string Guid = "com.ryannlt.adminhelper";
 
-        private readonly IsolationTracker _tracker = new IsolationTracker();
+        private const float RememberSeconds = 3f;
+
+        private struct Remembered
+        {
+            public Color Colour;
+            public float Time;
+        }
+
+        private static readonly IsolationTracker Tracker = new IsolationTracker();
+        private static readonly Dictionary<int, Remembered> Recent = new Dictionary<int, Remembered>();
+        private static readonly List<int> Stale = new List<int>();
         private readonly FlagTracker _flags = new FlagTracker();
-        private readonly MinimapMarkers _minimap = new MinimapMarkers();
-        private readonly RingRenderer _rings = new RingRenderer();
         private readonly Hotkey _hotkey = new Hotkey();
-        private readonly Hud _hud = new Hud();
+
+        private WorldLayer _world;
+        private MinimapLayer _map;
 
         private Driver _driver;
         private float _accumulator;
@@ -29,13 +41,18 @@ namespace AdminHelper
         private void Awake()
         {
             Settings.Create(Config);
-            _hotkey.ResetToDefault();
+            _world = new WorldLayer(Tracker, _flags);
+            _world.Register();
+            _map = new MinimapLayer(_flags);
+            _map.Register();
+            HelperTab.Register(new MapOverlay(Tracker, _flags));
+            RowActions.Register();
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             EnsureDriver();
             PatchPMenu();
 
-            Log.Info("Ready. Toggle key " + Settings.ResolveToggleKey() +
+            Log.Info("Ready. Toggle key " + Settings.ToggleKeyCode + ", overlay " + Settings.RamboUi.Value +
                      ", RequireAdminLogin=" + Settings.RequireAdminLogin.Value);
         }
 
@@ -52,10 +69,8 @@ namespace AdminHelper
             GameAccess.ClearSceneCache();
             MeleeTracker.Reset();
             RowActions.Reset();
-            _tracker.Reset();
+            Tracker.Reset();
             _flags.Reset();
-            _minimap.Reset();
-            _rings.Destroy();
             _accumulator = 0f;
             _wasInRound = false;
         }
@@ -85,8 +100,8 @@ namespace AdminHelper
 
             if (!Settings.Enabled.Value)
             {
-                _rings.HideAll();
-                _minimap.Hide();
+                _world.Visible = false;
+                _map.Visible = false;
                 return;
             }
 
@@ -95,11 +110,11 @@ namespace AdminHelper
             bool inRound = GameAccess.InRound;
             if (!inRound)
             {
-                if (_wasInRound) _tracker.Reset();
+                if (_wasInRound) Tracker.Reset();
                 _wasInRound = false;
                 _flags.Flags.Clear();
-                _rings.HideAll();
-                _minimap.Hide();
+                _world.Visible = false;
+                _map.Visible = false;
                 return;
             }
 
@@ -113,29 +128,83 @@ namespace AdminHelper
             float interval = 1f / Mathf.Clamp(Settings.TickHz.Value, 1f, 30f);
             if (_accumulator >= interval)
             {
-                _tracker.Tick(_accumulator);
+                Tracker.Tick(_accumulator);
                 _accumulator = 0f;
+                Remember();
             }
 
-            bool showFlags = CanReveal() && _hotkey.Visible && Settings.FlagHighlightEnabled.Value;
-            if (showFlags) _flags.Tick();
+            if (CanReveal()) RamboSpectate.Poll(Tracker.Watched);
+
+            bool visible = OverlayVisible;
+            bool worldFlags = CanReveal() && visible && Settings.FlagHighlightEnabled.Value;
+            bool mapFlags = Settings.FlagHighlightEnabled.Value && Settings.FlagMinimapMarkers.Value;
+            if (worldFlags || mapFlags) _flags.Tick();
             else _flags.Flags.Clear();
 
-            if (CanReveal() && _hotkey.Visible && Settings.ShowRings.Value) _rings.Draw(_tracker.Watched, _flags.Flags);
-            else _rings.HideAll();
-
-            if (showFlags && Settings.FlagMinimapMarkers.Value) _minimap.Draw(_flags.Flags);
-            else _minimap.Hide();
+            _world.Visible = CanReveal() && visible;
+            _world.ShowFlags = worldFlags;
+            _map.Visible = mapFlags;
         }
 
-        internal void DrawGui()
+        internal static bool OverlayVisible
         {
-            if (!Settings.Enabled.Value || !_hotkey.Visible || !GameAccess.InRound) return;
-
-            _hud.Draw(_tracker, _flags.Flags, CanReveal());
+            get
+            {
+                switch (Settings.RamboUi.Value)
+                {
+                    case RamboUiMode.On:
+                        return true;
+                    case RamboUiMode.FreeflightOnly:
+                        return GameAccess.InFreeflight;
+                    default:
+                        return false;
+                }
+            }
         }
 
-        private static bool CanReveal()
+        internal static bool TryStateColour(int playerId, out Color colour)
+        {
+            colour = Color.clear;
+
+            for (int i = 0; i < Tracker.Watched.Count; i++)
+            {
+                ScoredPlayer scored = Tracker.Watched[i];
+                if (scored.PlayerId != playerId) continue;
+
+                colour = WorldLayer.StateColour(scored);
+                return true;
+            }
+
+            Remembered last;
+            if (!Recent.TryGetValue(playerId, out last) || Time.time - last.Time > RememberSeconds) return false;
+
+            colour = last.Colour;
+            return true;
+        }
+
+        private static void Remember()
+        {
+            float now = Time.time;
+            for (int i = 0; i < Tracker.Watched.Count; i++)
+            {
+                ScoredPlayer scored = Tracker.Watched[i];
+
+                Remembered entry;
+                entry.Colour = WorldLayer.StateColour(scored);
+                entry.Time = now;
+                Recent[scored.PlayerId] = entry;
+            }
+
+            Stale.Clear();
+            foreach (KeyValuePair<int, Remembered> pair in Recent)
+            {
+                if (now - pair.Value.Time > RememberSeconds) Stale.Add(pair.Key);
+            }
+
+            for (int i = 0; i < Stale.Count; i++) Recent.Remove(Stale[i]);
+        }
+
+        internal static bool CanReveal()
         {
             return !Settings.RequireAdminLogin.Value || GameAccess.IsLoggedInAdmin;
         }

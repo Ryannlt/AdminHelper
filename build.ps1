@@ -43,6 +43,8 @@ $refs = @(
     (Join-Path $ManagedDir 'UnityEngine.InputLegacyModule.dll'),
     (Join-Path $ManagedDir 'UnityEngine.UI.dll'),
     (Join-Path $ManagedDir 'UnityEngine.UIModule.dll'),
+    (Join-Path $ManagedDir 'UnityEngine.PhysicsModule.dll'),
+    (Join-Path $ManagedDir 'UnityEngine.TerrainModule.dll'),
     (Join-Path $ManagedDir 'Unity.TextMeshPro.dll'),
     (Join-Path $ManagedDir 'Assembly-CSharp.dll'),
     (Join-Path $ManagedDir 'HoldfastEnums.Runtime.dll'),
@@ -50,7 +52,8 @@ $refs = @(
     (Join-Path $ManagedDir 'ScorableActions.Runtime.dll'),
     (Join-Path $ManagedDir 'uLink.Runtime.dll'),
     (Join-Path $BepInExDir 'BepInEx.dll'),
-    (Join-Path $BepInExDir '0Harmony.dll')
+    (Join-Path $BepInExDir '0Harmony.dll'),
+    (Join-Path $PSScriptRoot '..\RyLib\RyLib.dll')
 )
 
 $cscArgs = @('-nologo', '-noconfig', '-nostdlib+', '-target:library', "-out:$OutFile")

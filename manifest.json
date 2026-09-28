@@ -1,9 +1,10 @@
 {
   "name": "AdminHelper",
-  "version_number": "1.1.2",
+  "version_number": "1.2.0",
   "website_url": "https://github.com/Ryannlt/AdminHelper",
-  "description": "A tool to assist in event admining. Highlights players who are ramboing, highlights CTF flags, greys out players who are standing still, finds players by class or regiment, and marks whether a teamkill victim was in a melee.",
+  "description": "A tool to assist in event admining. Highlights players who are ramboing, highlights CTF flags, greys out players standing still, finds players by class or regiment, marks melee kills in the kill log, and adds an admin battle map.",
   "dependencies": [
-    "HoldfastModding-BepInExPack_Holdfast-5.4.2305"
+    "HoldfastModding-BepInExPack_Holdfast-5.4.2305",
+    "Ryanlt-RyLib-1.0.0"
   ]
 }

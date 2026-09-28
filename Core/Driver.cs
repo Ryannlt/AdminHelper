@@ -30,10 +30,5 @@ namespace AdminHelper
         {
             if (!ReferenceEquals(Owner, null)) Owner.Tick();
         }
-
-        private void OnGUI()
-        {
-            if (!ReferenceEquals(Owner, null)) Owner.DrawGui();
-        }
     }
 }

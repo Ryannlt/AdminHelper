@@ -40,6 +40,8 @@
     <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(ManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath></Reference>
     <Reference Include="UnityEngine.UI">        <HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>        </Reference>
     <Reference Include="UnityEngine.UIModule"> <HintPath>$(ManagedDir)\UnityEngine.UIModule.dll</HintPath>  </Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(ManagedDir)\UnityEngine.PhysicsModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.TerrainModule"><HintPath>$(ManagedDir)\UnityEngine.TerrainModule.dll</HintPath></Reference>
     <Reference Include="Unity.TextMeshPro">    <HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath>    </Reference>
     <Reference Include="Assembly-CSharp">       <HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath>       </Reference>
     <Reference Include="HoldfastEnums.Runtime"><HintPath>$(ManagedDir)\HoldfastEnums.Runtime.dll</HintPath></Reference>
@@ -47,6 +49,7 @@
     <Reference Include="ScorableActions.Runtime"><HintPath>$(ManagedDir)\ScorableActions.Runtime.dll</HintPath></Reference>
     <Reference Include="uLink.Runtime">        <HintPath>$(ManagedDir)\uLink.Runtime.dll</HintPath>        </Reference>
     <Reference Include="BepInEx">               <HintPath>$(BepInExDir)\BepInEx.dll</HintPath>              </Reference>
+    <Reference Include="RyLib">                 <HintPath>..\RyLib\RyLib.dll</HintPath>                   </Reference>
     <Reference Include="0Harmony">              <HintPath>$(BepInExDir)\0Harmony.dll</HintPath>             </Reference>
   </ItemGroup>
 

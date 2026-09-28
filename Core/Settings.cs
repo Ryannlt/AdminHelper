@@ -38,11 +38,13 @@ namespace AdminHelper
 
         public static ConfigEntry<bool> ShowRings;
         public static ConfigEntry<bool> ShowLabels;
-        public static ConfigEntry<bool> ShowCornerList;
-        public static ConfigEntry<bool> ShowOwnScore;
+        public static ConfigEntry<bool> ShowGlow;
         public static ConfigEntry<int> MaxLabels;
+        public static ConfigEntry<RamboUiMode> RamboUi;
         public static ConfigEntry<string> ToggleKey;
-        public static ConfigEntry<bool> StartHudVisible;
+
+        public static ConfigEntry<string> SpectatePrevKey;
+        public static ConfigEntry<string> SpectateNextKey;
 
         public static ConfigEntry<bool> ClassFilterEnabled;
         public static ConfigEntry<bool> RegimentSearchEnabled;
@@ -53,6 +55,8 @@ namespace AdminHelper
 
         public static ConfigEntry<bool> FlagHighlightEnabled;
         public static ConfigEntry<bool> FlagMinimapMarkers;
+        public static ConfigEntry<bool> FlagMinimapAlways;
+        public static ConfigEntry<bool> ShowFlagLabels;
 
         public static ConfigEntry<bool> AfkMarkEnabled;
         public static ConfigEntry<float> AfkSeconds;
@@ -63,10 +67,14 @@ namespace AdminHelper
         public static ConfigEntry<float> MeleeChainMetres;
         public static ConfigEntry<float> MeleeWindowSeconds;
 
+        public static ConfigEntry<bool> MapEnabled;
+
         private static readonly HashSet<PlayerClass> ExemptSet = new HashSet<PlayerClass>();
         private static string _exemptSource;
-        private static string _toggleKeySource;
-        private static KeyCode _toggleKey = KeyCode.F6;
+
+        private static KeyBinding _toggleKey;
+        private static KeyBinding _spectatePrevKey;
+        private static KeyBinding _spectateNextKey;
 
         private static ConfigFile _config;
         private static DateTime _stamp;
@@ -127,9 +135,13 @@ namespace AdminHelper
                 "Do not flag a player who was not already ramboing when their melee started, until the melee window has run out. Covers the last one or two left in a fight their mates started.");
 
             FlagHighlightEnabled = config.Bind("CTF", "FlagHighlightEnabled", false,
-                "Highlight flags: a ring and label on the carrier or on a flag lying on the ground, and a line in the corner list. Off by default, since it only matters on a flag game mode.");
+                "Track flags. Admins get a glow and a label on every flag in its faction's colour, and flags go on the minimap (see FlagMinimapMarkers). Off by default, since it only matters on a flag game mode.");
             FlagMinimapMarkers = config.Bind("CTF", "FlagMinimapMarkers", true,
-                "Also mark them on the minimap: the carrier's own pointer is tinted, and a flag on the ground gets a marker of its own. Needs FlagHighlightEnabled.");
+                "Mark flags on the minimap by the game's own rules: blue on your side, red on the enemy's, and the enemy's only while their faction is revealed. A carried flag counts as the carrier's. Needs FlagHighlightEnabled.");
+            ShowFlagLabels = config.Bind("CTF", "ShowFlagLabels", true,
+                "Label each flag with its faction, or with who is carrying it. Separate from the player labels.");
+            FlagMinimapAlways = config.Bind("CTF", "FlagMinimapAlways", true,
+                "Admins see every flag on the minimap whatever the reveal rules. Needs FlagHighlightEnabled and an rc login.");
 
             AfkMarkEnabled = config.Bind("AFK", "AfkMarkEnabled", true,
                 "Grey out players who have not moved for a while, so a parked player is not read as someone worth watching.");
@@ -141,29 +153,32 @@ namespace AdminHelper
             ShowRings = config.Bind("Display", "ShowRings", true,
                 "Draw a ground ring under each watched player.");
             ShowLabels = config.Bind("Display", "ShowLabels", true,
-                "Draw the floating name and score label over each watched player.");
-            ShowCornerList = config.Bind("Display", "ShowCornerList", true,
-                "List watched players in the corner with their scores and distance.");
-            ShowOwnScore = config.Bind("Display", "ShowOwnScore", true,
-                "Your own scores plus the raw distances behind them. The fastest way to pick thresholds.");
+                "Draw the floating name and score label over each watched player. Flag labels have their own switch, ShowFlagLabels.");
+            ShowGlow = config.Bind("Display", "ShowGlow", true,
+                "Glow around watched players and flags in their colour, visible through walls and terrain.");
             MaxLabels = config.Bind("Display", "MaxLabels", 12,
-                "Most floating labels drawn at once, nearest first.");
+                "Most floating labels drawn at once, worst first.");
+            RamboUi = config.Bind("Display", "RamboUi", RamboUiMode.Off,
+                "When the rambo overlay shows, like the game's Admin Raygun: On, FreeflightOnly or Off. ToggleKey and the P menu button both change it, and it is remembered between launches.");
             ToggleKey = config.Bind("Display", "ToggleKey", "F6",
-                "Key that hides and shows the HUD. Any UnityEngine.KeyCode name.");
-            StartHudVisible = config.Bind("Display", "StartHudVisible", false,
-                "Whether the HUD starts visible when the game launches. After that the toggle sticks until you quit.");
+                "Key that hides the overlay and brings it back in the mode it was in. Any UnityEngine.KeyCode name.");
+
+            SpectatePrevKey = config.Bind("Spectate", "SpectatePrevKey", "LeftBracket",
+                "Spectate the previous watched player. The list runs worst first: RAMBO, then ISOLATED and FIGHT by danger, then AFK. Any UnityEngine.KeyCode name.");
+            SpectateNextKey = config.Bind("Spectate", "SpectateNextKey", "RightBracket",
+                "Spectate the next watched player, worst first. Any UnityEngine.KeyCode name.");
 
             ClassFilterEnabled = config.Bind("PMenu", "ClassFilterEnabled", true,
                 "Let the P menu player search box filter by class, e.g. 'rifleman', 'surgeon' or 'cavalry'.");
             RegimentSearchEnabled = config.Bind("PMenu", "RegimentSearchEnabled", true,
                 "Also match regiment tags in that box, ignoring punctuation and accents, so [45e] is found by 45.");
             RowActionsEnabled = config.Bind("PMenu", "RowActionsEnabled", true,
-                "Add 'To Regt' and 'Rez + Regt' to a player's action buttons, which put them back with their regiment.");
+                "Add 'Reg TP' and 'Rez + Reg TP' to a player's action buttons. They send the player to the middle of their regiment's players of the same class, or to the closest friendly player if there are none.");
             FactionSearchEnabled = config.Bind("PMenu", "FactionSearchEnabled", true,
                 "Also match factions and sides there, e.g. 'french', 'allied', 'attackers' or 'defenders'. Combines with a class, e.g. 'french cav'.");
 
             MeleeMarkerEnabled = config.Bind("KillLog", "MeleeMarkerEnabled", true,
-                "Mark each kill in the admin kill log with whether the victim was in a melee. Blank means it was not being tracked.");
+                "Mark kills in the admin kill log with crossed swords when the victim was in a melee.");
             TeamkillFilterEnabled = config.Bind("KillLog", "TeamkillFilterEnabled", true,
                 "Add a teamkills only toggle to the kill log tab, and accept 'tk' in its search box.");
             MeleeChainMetres = config.Bind("KillLog", "MeleeChainMetres", 10f,
@@ -171,6 +186,34 @@ namespace AdminHelper
             MeleeWindowSeconds = config.Bind("KillLog", "MeleeWindowSeconds", 10f,
                 "Seconds without a hit or a block anywhere in the melee before it is treated as over.");
 
+            MapEnabled = config.Bind("Map", "MapEnabled", false,
+                "Add a Map tab to the P menu: an overhead picture of the battle with every player drawn by class in their faction's colour, and admin actions on them. Rambo outlines and flags are drawn on it while those are showing. Off by default.");
+
+            _toggleKey = new KeyBinding(ToggleKey, KeyCode.F6);
+            _spectatePrevKey = new KeyBinding(SpectatePrevKey, KeyCode.LeftBracket);
+            _spectateNextKey = new KeyBinding(SpectateNextKey, KeyCode.RightBracket);
+
+            _stamp = Stamp();
+        }
+
+        public static KeyCode ToggleKeyCode
+        {
+            get { return _toggleKey.Key; }
+        }
+
+        public static KeyCode SpectatePrevKeyCode
+        {
+            get { return _spectatePrevKey.Key; }
+        }
+
+        public static KeyCode SpectateNextKeyCode
+        {
+            get { return _spectateNextKey.Key; }
+        }
+
+        public static void Write<T>(ConfigEntry<T> entry, T value)
+        {
+            entry.Value = value;
             _stamp = Stamp();
         }
 
@@ -229,27 +272,46 @@ namespace AdminHelper
             }
         }
 
-        public static KeyCode ResolveToggleKey()
+        private sealed class KeyBinding
         {
-            string source = ToggleKey.Value ?? string.Empty;
-            if (source == _toggleKeySource) return _toggleKey;
+            private readonly ConfigEntry<string> _entry;
+            private readonly KeyCode _fallback;
 
-            _toggleKeySource = source;
-            _toggleKey = KeyCode.F6;
+            private string _source;
+            private KeyCode _key;
 
-            string name = source.Trim();
-            if (name.Length == 0) return _toggleKey;
-
-            try
+            public KeyBinding(ConfigEntry<string> entry, KeyCode fallback)
             {
-                _toggleKey = (KeyCode)Enum.Parse(typeof(KeyCode), name, true);
-            }
-            catch (Exception)
-            {
-                Log.Warn("ToggleKey '" + name + "' is not a KeyCode name. Falling back to F6.");
+                _entry = entry;
+                _fallback = fallback;
+                _key = fallback;
             }
 
-            return _toggleKey;
+            public KeyCode Key
+            {
+                get
+                {
+                    string source = _entry.Value ?? string.Empty;
+                    if (source == _source) return _key;
+
+                    _source = source;
+                    _key = _fallback;
+
+                    string name = source.Trim();
+                    if (name.Length == 0) return _key;
+
+                    try
+                    {
+                        _key = (KeyCode)Enum.Parse(typeof(KeyCode), name, true);
+                    }
+                    catch (Exception)
+                    {
+                        Log.Warn(_entry.Definition.Key + " '" + name + "' is not a KeyCode name. Falling back to " + _fallback + ".");
+                    }
+
+                    return _key;
+                }
+            }
         }
     }
 }
