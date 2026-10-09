@@ -12,6 +12,7 @@ namespace AdminHelper
         public FactionCountry Faction;
         public PlayerClass Class;
         public bool IsCavalry;
+        public bool Mounted;
         public bool IsArtillery;
         public bool IsBot;
     }
@@ -35,5 +36,7 @@ namespace AdminHelper
         public bool Afk;
         public float AfkSeconds;
         public bool InHonestMelee;
+        public bool Mounted;
+        public bool CavCharge;
     }
 }

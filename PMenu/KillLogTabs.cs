@@ -232,7 +232,7 @@ namespace AdminHelper
 
             Vector3[] corners = new Vector3[4];
             searchRect.GetWorldCorners(corners);
-            float centreY = (corners[0].y + corners[1].y) * 0.5f;
+            float centerY = (corners[0].y + corners[1].y) * 0.5f;
 
             float rightEdge = PlayersTabsRightEdge();
 
@@ -241,7 +241,7 @@ namespace AdminHelper
                 RectTransform tab = rect.parent as RectTransform;
                 if (tab == null)
                 {
-                    rect.position = new Vector3(corners[2].x, centreY, corners[0].z);
+                    rect.position = new Vector3(corners[2].x, centerY, corners[0].z);
                     rect.anchoredPosition += new Vector2(side * 0.5f + 14f, 0f);
                     return;
                 }
@@ -251,7 +251,7 @@ namespace AdminHelper
                 rightEdge = tabCorners[2].x;
             }
 
-            rect.position = new Vector3(rightEdge, centreY, corners[0].z);
+            rect.position = new Vector3(rightEdge, centerY, corners[0].z);
             rect.anchoredPosition -= new Vector2(side * 0.5f, 0f);
         }
 
@@ -281,13 +281,13 @@ namespace AdminHelper
 
         private static void StripLocalizers(GameObject target)
         {
-            MonoBehaviour[] behaviours = target.GetComponentsInChildren<MonoBehaviour>(true);
-            for (int i = 0; i < behaviours.Length; i++)
+            MonoBehaviour[] behaviors = target.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < behaviors.Length; i++)
             {
-                if (behaviours[i] == null) continue;
-                if (behaviours[i].GetType().Name.IndexOf("Localize", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                if (behaviors[i] == null) continue;
+                if (behaviors[i].GetType().Name.IndexOf("Localize", StringComparison.OrdinalIgnoreCase) < 0) continue;
 
-                UnityEngine.Object.Destroy(behaviours[i]);
+                UnityEngine.Object.Destroy(behaviors[i]);
             }
         }
 

@@ -9,8 +9,9 @@ namespace AdminHelper
     {
         public MeleeTracker.State Melee;
         public bool Teamkill;
-        public string KillerColour = string.Empty;
-        public string VictimColour = string.Empty;
+        public bool Multicharge;
+        public string KillerColor = string.Empty;
+        public string VictimColor = string.Empty;
     }
 
     internal static class KillLogMarks
@@ -18,6 +19,12 @@ namespace AdminHelper
         public const string InMeleeText = "IN MELEE";
         public const string MeleeIcon = "hui-trait-sword-specialisation";
         public const string MeleeIconSize = "125%";
+        public const string MultichargeIcon = "hui-trait-mounted-sword-specialist";
+        public const string MultichargeText = "OUT OF SPACING";
+        public const string MultichargeHex = "E03C31";
+
+        private static readonly List<PlayerSnapshot> Riders = new List<PlayerSnapshot>();
+        private static readonly List<PlayerSnapshot> Chain = new List<PlayerSnapshot>();
 
         private static readonly Dictionary<KillLogInfo, KillMark> Marks = new Dictionary<KillLogInfo, KillMark>();
 
@@ -41,6 +48,57 @@ namespace AdminHelper
         {
             Marks.Clear();
             TeamkillOnly = false;
+        }
+
+        public static bool MultichargeBroken(ClientRoundPlayer killer, ClientRoundPlayer victim, bool killerIsVictim)
+        {
+            if (Settings.CavalryRules == null || !Settings.CavalryRules.Value || !Settings.MultichargeCheck.Value) return false;
+            if (killerIsVictim || killer == null || victim == null) return false;
+            if (killer.PlayerStartData == null || victim.PlayerStartData == null) return false;
+            if (killer.PlayerStartData.Faction == victim.PlayerStartData.Faction) return false;
+            if (!GameAccess.IsMounted(killer)) return false;
+
+            Vector3 origin = (killer.PlayerTransformData == null) ? Vector3.zero : killer.PlayerTransformData.position;
+            int riders = ChainSize(killer.NetworkPlayerID, killer.PlayerStartData.Faction, origin, GameAccess.CompassRange());
+            return riders < Mathf.Max(1, Settings.MultichargeMinRiders.Value);
+        }
+
+        private static int ChainSize(int killerId, FactionCountry faction, Vector3 origin, float range)
+        {
+            GameAccess.CollectPlayers(Riders);
+
+            Chain.Clear();
+            for (int i = Riders.Count - 1; i >= 0; i--)
+            {
+                PlayerSnapshot rider = Riders[i];
+                if (rider.PlayerId == killerId || rider.Faction != faction || !rider.Mounted) Riders.RemoveAt(i);
+            }
+
+            float rangeSquared = range * range;
+            int found = 1;
+            int next = 0;
+            Vector3 from = origin;
+
+            while (true)
+            {
+                for (int i = Riders.Count - 1; i >= 0; i--)
+                {
+                    float dx = Riders[i].Position.x - from.x;
+                    float dz = Riders[i].Position.z - from.z;
+                    if (dx * dx + dz * dz > rangeSquared) continue;
+
+                    Chain.Add(Riders[i]);
+                    Riders.RemoveAt(i);
+                    found++;
+                }
+
+                if (next >= Chain.Count) break;
+                from = Chain[next++].Position;
+            }
+
+            Riders.Clear();
+            Chain.Clear();
+            return found;
         }
 
         public static bool IsTeamkill(ClientRoundPlayer killer, ClientRoundPlayer victim, bool killerIsVictim)
@@ -69,26 +127,44 @@ namespace AdminHelper
             mark.Melee = Marked() && victim != null
                 ? MeleeTracker.Query(victim.NetworkPlayerID)
                 : MeleeTracker.State.Unknown;
-            mark.KillerColour = Colour(killer);
-            mark.VictimColour = Colour(victim);
+            mark.Multicharge = KillLogMarks.MultichargeBroken(killer, victim, killerIsVictim);
+            mark.KillerColor = HexOf(killer);
+            mark.VictimColor = HexOf(victim);
 
             KillLogMarks.Record(info, mark);
             Stamp(info, mark);
         }
 
-        private static string Colour(ClientRoundPlayer player)
+        private static string HexOf(ClientRoundPlayer player)
         {
-            Color colour;
-            if (player == null || !AdminHelperMod.TryStateColour(player.NetworkPlayerID, out colour)) return string.Empty;
-            return ColorUtility.ToHtmlStringRGB(colour);
+            Color color;
+            if (player == null || !AdminHelperMod.TryStateColor(player.NetworkPlayerID, out color)) return string.Empty;
+            return ColorUtility.ToHtmlStringRGB(color);
         }
 
         private static void Stamp(KillLogInfo info, KillMark mark)
         {
-            if (mark.Melee != MeleeTracker.State.InMelee) return;
+            if (mark.Melee == MeleeTracker.State.InMelee)
+            {
+                string icon = RyLib.TextIcons.Tag(KillLogMarks.MeleeIcon);
+                Append(info, (icon == null) ? KillLogMarks.InMeleeText : Large(icon));
+            }
 
-            string icon = RyLib.TextIcons.Tag(KillLogMarks.MeleeIcon);
-            string text = (icon == null) ? KillLogMarks.InMeleeText : "</size><size=" + KillLogMarks.MeleeIconSize + ">" + icon + "</size><size=75%>";
+            if (mark.Multicharge)
+            {
+                string icon = RyLib.TextIcons.Tag(KillLogMarks.MultichargeIcon);
+                string text = (icon == null) ? KillLogMarks.MultichargeText : Large(icon);
+                Append(info, "<color=#" + KillLogMarks.MultichargeHex + ">" + text + "</color>");
+            }
+        }
+
+        private static string Large(string icon)
+        {
+            return "</size><size=" + KillLogMarks.MeleeIconSize + ">" + icon + "</size><size=75%>";
+        }
+
+        private static void Append(KillLogInfo info, string text)
+        {
             info.KillRange = string.IsNullOrEmpty(info.KillRange) ? text : info.KillRange + "  " + text;
         }
 
@@ -99,18 +175,18 @@ namespace AdminHelper
     }
 
     [HarmonyPatch(typeof(UIAdminPlayerKillLogPanelRow), nameof(UIAdminPlayerKillLogPanelRow.Setup))]
-    internal static class KillLogRowColourPatch
+    internal static class KillLogRowColorPatch
     {
         private static void Postfix(UIAdminPlayerKillLogPanelRow __instance, KillLogInfo killLogInfo)
         {
             if (killLogInfo == null || __instance.scoreLogUiEntry == null) return;
-            if (Settings.RamboUi.Value == RamboUiMode.Off || !AdminHelperMod.CanReveal()) return;
+            if (!Settings.KillLogColors) return;
 
             KillMark mark = KillLogMarks.For(killLogInfo);
-            if (mark == null || (mark.KillerColour.Length == 0 && mark.VictimColour.Length == 0)) return;
+            if (mark == null || (mark.KillerColor.Length == 0 && mark.VictimColor.Length == 0)) return;
 
-            __instance.scoreLogUiEntry.BuildScoreLogEntry(killLogInfo.KillerIcon, Paint(killLogInfo.KillerName, mark.KillerColour),
-                string.Empty, killLogInfo.KillMethod, killLogInfo.VictimIcon, Paint(killLogInfo.VictimName, mark.VictimColour),
+            __instance.scoreLogUiEntry.BuildScoreLogEntry(killLogInfo.KillerIcon, Paint(killLogInfo.KillerName, mark.KillerColor),
+                string.Empty, killLogInfo.KillMethod, killLogInfo.VictimIcon, Paint(killLogInfo.VictimName, mark.VictimColor),
                 string.Empty, killLogInfo.KillRange, false, killLogInfo.KillerIsVictim);
         }
 

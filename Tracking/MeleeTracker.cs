@@ -24,6 +24,7 @@ namespace AdminHelper
         private static readonly Dictionary<int, Trace> Traces = new Dictionary<int, Trace>();
 
         private static readonly HashSet<int> InMelee = new HashSet<int>();
+        private static readonly HashSet<int> Mounted = new HashSet<int>();
         private static readonly List<PlayerSnapshot> Players = new List<PlayerSnapshot>();
         private static readonly List<int> Pending = new List<int>();
 
@@ -44,6 +45,7 @@ namespace AdminHelper
         {
             Traces.Clear();
             InMelee.Clear();
+            Mounted.Clear();
             Players.Clear();
             Pending.Clear();
             _trackingSince = -1f;
@@ -79,40 +81,60 @@ namespace AdminHelper
             return State.NotInMelee;
         }
 
+        public static bool CavCharge(int playerId)
+        {
+            return Mounted.Contains(playerId) && Query(playerId) == State.InMelee;
+        }
+
         private static void Rebuild()
         {
             GameAccess.CollectPlayers(Players);
 
             InMelee.Clear();
+            Mounted.Clear();
             Pending.Clear();
 
             float window = Window();
+            bool cavalry = CavalryOn();
+            float engage = cavalry ? Mathf.Max(0f, Settings.CavalryEngageMeters.Value) : 0f;
+            float engageSquared = engage * engage;
 
             for (int i = 0; i < Players.Count; i++)
             {
-                int id = Players[i].PlayerId;
+                PlayerSnapshot snapshot = Players[i];
+                if (snapshot.Mounted) Mounted.Add(snapshot.PlayerId);
 
                 Trace trace;
-                if (!Traces.TryGetValue(id, out trace)) continue;
-                if (Time.time - trace.LastTrigger > window) continue;
+                if (!Traces.TryGetValue(snapshot.PlayerId, out trace)) continue;
 
-                if (InMelee.Add(id)) Pending.Add(id);
+                bool triggered = Time.time - trace.LastTrigger <= window;
+                bool circling = cavalry && snapshot.Mounted && Time.time - trace.LastInMelee <= window &&
+                                EnemyWithin(snapshot, engageSquared);
+                if (!triggered && !circling) continue;
+
+                if (InMelee.Add(snapshot.PlayerId)) Pending.Add(snapshot.PlayerId);
             }
 
             float radius = Radius();
             float radiusSquared = radius * radius;
+            float riders = cavalry ? Mathf.Max(radius, Settings.CavalryChainMeters.Value) : radius;
+            float ridersSquared = riders * riders;
 
             int guard = 0;
             while (Pending.Count > 0 && guard++ < 512)
             {
-                Vector3 from = PositionOf(Pending[0]);
+                int fromId = Pending[0];
+                Vector3 from = PositionOf(fromId);
+                bool fromMounted = Mounted.Contains(fromId);
                 Pending.RemoveAt(0);
 
                 for (int i = 0; i < Players.Count; i++)
                 {
                     PlayerSnapshot other = Players[i];
                     if (InMelee.Contains(other.PlayerId)) continue;
-                    if (HorizontalSquared(other.Position - from) > radiusSquared) continue;
+
+                    float reach = (fromMounted && other.Mounted) ? ridersSquared : radiusSquared;
+                    if (HorizontalSquared(other.Position - from) > reach) continue;
 
                     InMelee.Add(other.PlayerId);
                     Pending.Add(other.PlayerId);
@@ -179,6 +201,25 @@ namespace AdminHelper
             return player.PlayerStartData.Faction != trace.Faction;
         }
 
+        private static bool EnemyWithin(PlayerSnapshot self, float radiusSquared)
+        {
+            if (radiusSquared <= 0f) return false;
+
+            for (int i = 0; i < Players.Count; i++)
+            {
+                PlayerSnapshot other = Players[i];
+                if (other.Faction == self.Faction) continue;
+                if (HorizontalSquared(other.Position - self.Position) <= radiusSquared) return true;
+            }
+
+            return false;
+        }
+
+        private static bool CavalryOn()
+        {
+            return Settings.CavalryRules != null && Settings.CavalryRules.Value;
+        }
+
         private static Vector3 PositionOf(int playerId)
         {
             for (int i = 0; i < Players.Count; i++)
@@ -200,7 +241,7 @@ namespace AdminHelper
 
         private static float Radius()
         {
-            return (Settings.MeleeChainMetres == null) ? 10f : Mathf.Max(0f, Settings.MeleeChainMetres.Value);
+            return (Settings.MeleeChainMeters == null) ? 10f : Mathf.Max(0f, Settings.MeleeChainMeters.Value);
         }
     }
 }

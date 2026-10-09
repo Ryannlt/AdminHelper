@@ -36,7 +36,7 @@ namespace AdminHelper
 
             entry.LastSeen = now;
 
-            float moved = Settings.AfkMoveMetres == null ? 0.75f : Mathf.Max(0.05f, Settings.AfkMoveMetres.Value);
+            float moved = Settings.AfkMoveMeters == null ? 0.75f : Mathf.Max(0.05f, Settings.AfkMoveMeters.Value);
             if (Horizontal(player.Position - entry.Position) > moved)
             {
                 entry.Position = player.Position;

@@ -37,7 +37,7 @@ namespace AdminHelper
                 mark.Follow = flag.Follow.transform;
                 mark.Shape = RyLib.MapShape.Flag;
                 mark.Faction = flag.Side;
-                mark.Colour = WorldLayer.FactionColour(flag.Type);
+                mark.Color = WorldLayer.FactionColor(flag.Type);
                 mark.AlwaysShow = always;
                 marks.Add(mark);
             }

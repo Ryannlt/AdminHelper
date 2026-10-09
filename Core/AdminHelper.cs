@@ -6,13 +6,13 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: AssemblyVersion("1.2.0.0")]
-[assembly: AssemblyFileVersion("1.2.0.0")]
+[assembly: AssemblyVersion("1.3.0.0")]
+[assembly: AssemblyFileVersion("1.3.0.0")]
 
 namespace AdminHelper
 {
-    [BepInPlugin(Guid, "AdminHelper", "1.2.0")]
-    [BepInDependency(RyLib.RyLibPlugin.Guid)]
+    [BepInPlugin(Guid, "AdminHelper", "1.3.0")]
+    [BepInDependency(RyLib.RyLibPlugin.Guid, "1.1.0")]
     public class AdminHelperMod : BaseUnityPlugin
     {
         public const string Guid = "com.ryannlt.adminhelper";
@@ -21,7 +21,7 @@ namespace AdminHelper
 
         private struct Remembered
         {
-            public Color Colour;
+            public Color Color;
             public float Time;
         }
 
@@ -163,23 +163,23 @@ namespace AdminHelper
             }
         }
 
-        internal static bool TryStateColour(int playerId, out Color colour)
+        internal static bool TryStateColor(int playerId, out Color color)
         {
-            colour = Color.clear;
+            color = Color.clear;
 
             for (int i = 0; i < Tracker.Watched.Count; i++)
             {
                 ScoredPlayer scored = Tracker.Watched[i];
                 if (scored.PlayerId != playerId) continue;
 
-                colour = WorldLayer.StateColour(scored);
+                color = WorldLayer.StateColor(scored);
                 return true;
             }
 
             Remembered last;
             if (!Recent.TryGetValue(playerId, out last) || Time.time - last.Time > RememberSeconds) return false;
 
-            colour = last.Colour;
+            color = last.Color;
             return true;
         }
 
@@ -191,7 +191,7 @@ namespace AdminHelper
                 ScoredPlayer scored = Tracker.Watched[i];
 
                 Remembered entry;
-                entry.Colour = WorldLayer.StateColour(scored);
+                entry.Color = WorldLayer.StateColor(scored);
                 entry.Time = now;
                 Recent[scored.PlayerId] = entry;
             }

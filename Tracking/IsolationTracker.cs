@@ -54,18 +54,37 @@ namespace AdminHelper
 
             BucketByFaction();
 
+            bool cavalryRules = Settings.CavalryRules.Value;
+            float compass = cavalryRules ? GameAccess.CompassRange() : 0f;
+
             for (int i = 0; i < _players.Count; i++)
             {
                 PlayerSnapshot self = _players[i];
 
                 List<PlayerSnapshot> friendlies = _byFaction[self.Faction];
-                if (friendlies.Count < 3) continue;
+                bool cavCharge = cavalryRules && self.Mounted && MeleeTracker.CavCharge(self.PlayerId);
 
-                float mateDistance = MateDistance(self, friendlies);
-                bool inFormation = FormationDetector.IsInFormation(self, friendlies);
+                float mateDistance;
+                bool inFormation;
+                float rawIsolation;
+                bool riderScorable = true;
 
-                float rawIsolation = Curve(mateDistance);
-                if (inFormation) rawIsolation *= 1f - Mathf.Clamp01(Settings.FormationSuppression.Value);
+                if (self.Mounted)
+                {
+                    mateDistance = RiderDistance(self, friendlies);
+                    inFormation = false;
+                    riderScorable = cavalryRules && mateDistance < float.MaxValue;
+                    rawIsolation = riderScorable ? RiderCurve(mateDistance, compass) : 0f;
+                }
+                else
+                {
+                    if (friendlies.Count < 3) continue;
+
+                    mateDistance = MateDistance(self, friendlies);
+                    inFormation = FormationDetector.IsInFormation(self, friendlies);
+                    rawIsolation = Curve(mateDistance);
+                    if (inFormation) rawIsolation *= 1f - Mathf.Clamp01(Settings.FormationSuppression.Value);
+                }
 
                 State state = ResolveState(self.PlayerId);
                 Integrate(state, rawIsolation, dt);
@@ -77,7 +96,7 @@ namespace AdminHelper
                 int isolation = Mathf.RoundToInt(state.Isolation * 100f);
                 int danger = Mathf.RoundToInt(isolation * EnemyThreat(enemyDistance, enemyCount));
 
-                bool scorable = IsScorable(self);
+                bool scorable = riderScorable && IsScorable(self);
 
                 if (scorable && isolation >= Settings.RamboThreshold.Value) state.Dwell += dt;
                 else state.Dwell = Mathf.Max(0f, state.Dwell - dt * Mathf.Max(1f, Settings.RecoverMultiplier.Value));
@@ -102,8 +121,10 @@ namespace AdminHelper
                 scored.EnemyDistance = enemyDistance;
                 scored.EnemyCount = enemyCount;
                 scored.InFormation = inFormation;
+                scored.Mounted = self.Mounted;
+                scored.CavCharge = cavCharge;
 
-                if (scorable && isolation >= Settings.RingThreshold.Value) Watched.Add(scored);
+                if (cavCharge || (scorable && isolation >= Settings.RingThreshold.Value)) Watched.Add(scored);
             }
 
             SortAndCapWatched();
@@ -143,16 +164,40 @@ namespace AdminHelper
 
         private bool IsScorable(PlayerSnapshot self)
         {
-            if (self.IsCavalry && !Settings.ScoreCavalry.Value) return false;
             if (self.IsArtillery) return false;
             return !Settings.IsExempt(self.Class);
         }
 
         private static float Curve(float distance)
         {
-            float near = Settings.ClusterNearMetres.Value;
-            float far = Mathf.Max(near + 1f, Settings.ClusterFarMetres.Value);
+            float near = Settings.ClusterNearMeters.Value;
+            float far = Mathf.Max(near + 1f, Settings.ClusterFarMeters.Value);
             return Mathf.Clamp01((distance - near) / (far - near));
+        }
+
+        private static float RiderCurve(float distance, float compass)
+        {
+            float near = Mathf.Max(1f, compass);
+            float far = Mathf.Max(near + 1f, near * Mathf.Max(1f, Settings.CavalryFarMultiplier.Value));
+            return Mathf.Clamp01((distance - near) / (far - near));
+        }
+
+        private static float RiderDistance(PlayerSnapshot self, List<PlayerSnapshot> friendlies)
+        {
+            float nearestSquared = float.MaxValue;
+
+            for (int i = 0; i < friendlies.Count; i++)
+            {
+                PlayerSnapshot other = friendlies[i];
+                if (other.PlayerId == self.PlayerId || !other.Mounted) continue;
+
+                float dx = other.Position.x - self.Position.x;
+                float dz = other.Position.z - self.Position.z;
+                float distanceSquared = dx * dx + dz * dz;
+                if (distanceSquared < nearestSquared) nearestSquared = distanceSquared;
+            }
+
+            return (nearestSquared == float.MaxValue) ? float.MaxValue : Mathf.Sqrt(nearestSquared);
         }
 
         private float MateDistance(PlayerSnapshot self, List<PlayerSnapshot> friendlies)
@@ -187,9 +232,9 @@ namespace AdminHelper
 
             if (secondSquared == float.MaxValue) return float.MaxValue;
 
-            float centreX = (nearest.x + second.x) * 0.5f;
-            float centreZ = (nearest.z + second.z) * 0.5f;
-            return Horizontal(self.Position.x - centreX, self.Position.z - centreZ);
+            float centerX = (nearest.x + second.x) * 0.5f;
+            float centerZ = (nearest.z + second.z) * 0.5f;
+            return Horizontal(self.Position.x - centerX, self.Position.z - centerZ);
         }
 
         private void MeasureEnemies(PlayerSnapshot self, out float nearestDistance, out int countInRadius)

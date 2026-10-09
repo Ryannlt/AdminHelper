@@ -55,8 +55,9 @@ namespace AdminHelper
 
         private static int Tier(ScoredPlayer player)
         {
-            if (player.Afk) return 2;
-            return player.Flagged ? 0 : 1;
+            if (player.Flagged) return 0;
+            if (player.CavCharge) return 1;
+            return player.Afk ? 3 : 2;
         }
     }
 }

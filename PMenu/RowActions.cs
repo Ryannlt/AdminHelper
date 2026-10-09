@@ -142,16 +142,16 @@ namespace AdminHelper
 
         private static int Middle(List<PlayerSnapshot> mates)
         {
-            Vector3 centre = Vector3.zero;
-            for (int i = 0; i < mates.Count; i++) centre += mates[i].Position;
-            centre /= mates.Count;
+            Vector3 center = Vector3.zero;
+            for (int i = 0; i < mates.Count; i++) center += mates[i].Position;
+            center /= mates.Count;
 
             int best = mates[0].PlayerId;
             float bestDistance = float.MaxValue;
 
             for (int i = 0; i < mates.Count; i++)
             {
-                float distance = (mates[i].Position - centre).sqrMagnitude;
+                float distance = (mates[i].Position - center).sqrMagnitude;
                 if (distance >= bestDistance) continue;
 
                 bestDistance = distance;

@@ -9,8 +9,12 @@ namespace AdminHelper
 {
     internal static class GameAccess
     {
+        private const float FallbackCompassRange = 50f;
+
         private static GameConsolePanel _consolePanel;
         private static float _nextConsoleLookup;
+        private static float _gameCompassRange = -1f;
+        private static string _compassReport;
 
         public static ClientComponentReferenceManager Client
         {
@@ -145,6 +149,62 @@ namespace AdminHelper
         {
             _consolePanel = null;
             _nextConsoleLookup = 0f;
+            _gameCompassRange = -1f;
+            _compassReport = null;
+        }
+
+        public static float CompassRange()
+        {
+            float configured = (Settings.CompassRangeMeters == null) ? 0f : Settings.CompassRangeMeters.Value;
+            if (configured > 0f)
+            {
+                ReportCompass(configured, "from config");
+                return configured;
+            }
+
+            float game = GameCompassRange();
+            if (game > 0f)
+            {
+                ReportCompass(game, "from the game");
+                return game;
+            }
+
+            ReportCompass(FallbackCompassRange, "fallback, the game's compass range could not be read");
+            return FallbackCompassRange;
+        }
+
+        public static float GameCompassRange()
+        {
+            if (_gameCompassRange > 0f) return _gameCompassRange;
+
+            ClientComponentReferenceManager client = Client;
+            if (client == null || client.uiMinimapPanelTracking == null || client.clientGameManager == null) return -1f;
+
+            RoundGameDetails details = client.clientGameManager.CurrentRoundGameDetails;
+            if (details == null) return -1f;
+
+            MiniMapPanelTrackingPointerProperties properties = client.uiMinimapPanelTracking.ResolveTrackingPointerProperties(details.GameType);
+            if (properties == null || !properties.hideAllysOnDistance || properties.hideAllysDistance <= 0f) return -1f;
+
+            _gameCompassRange = properties.hideAllysDistance;
+            return _gameCompassRange;
+        }
+
+        private static void ReportCompass(float range, string source)
+        {
+            string report = range.ToString("0") + " m (" + source + ")";
+            if (report == _compassReport) return;
+
+            _compassReport = report;
+            Log.Info("compass range " + report);
+        }
+
+        public static bool IsMounted(RoundPlayer player)
+        {
+            if (player == null || player.PlayerBase == null) return false;
+
+            PlayerVehicleRider rider = player.PlayerBase.playerVehicleRider;
+            return rider != null && rider.IsRidingOrAnimatingWithMountable;
         }
 
         public static void CollectPlayers(List<PlayerSnapshot> into)
@@ -184,6 +244,7 @@ namespace AdminHelper
             snapshot.Faction = player.PlayerStartData.Faction;
             snapshot.Class = player.PlayerStartData.ClassType;
             snapshot.IsCavalry = playerBase.IsCavalry;
+            snapshot.Mounted = playerBase.playerVehicleRider != null && playerBase.playerVehicleRider.IsRidingOrAnimatingWithMountable;
             snapshot.IsArtillery = playerBase.IsArty;
             snapshot.IsBot = player.PlayerRoundInformation != null && player.PlayerRoundInformation.IsCarbonPlayer;
             return true;

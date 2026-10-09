@@ -11,13 +11,14 @@ namespace AdminHelper
         private const float PlayerLabelHeight = 2.1f;
         private const float FlagLabelHeight = 2.6f;
 
-        private static readonly Color CalmColour = new Color(0.35f, 0.9f, 0.3f);
-        private static readonly Color IsolatedColour = new Color(1f, 0.85f, 0.15f);
-        private static readonly Color DangerColour = new Color(1f, 0.55f, 0.1f);
-        private static readonly Color DeadlyColour = new Color(1f, 0.15f, 0.12f);
-        private static readonly Color AfkColour = new Color(0.6f, 0.62f, 0.65f);
-        private static readonly Color MeleeColour = new Color(0.55f, 0.85f, 1f);
-        private static readonly Color FlagColour = new Color(0.3f, 0.95f, 1f);
+        internal static readonly Color CalmColor = new Color(0.35f, 0.9f, 0.3f);
+        internal static readonly Color IsolatedColor = new Color(1f, 0.85f, 0.15f);
+        internal static readonly Color DangerColor = new Color(1f, 0.55f, 0.1f);
+        internal static readonly Color DeadlyColor = new Color(1f, 0.15f, 0.12f);
+        internal static readonly Color AfkColor = new Color(0.6f, 0.62f, 0.65f);
+        internal static readonly Color MeleeColor = new Color(0.55f, 0.85f, 1f);
+        internal static readonly Color CavChargeColor = new Color(0.78f, 0.6f, 1f);
+        private static readonly Color FlagColor = new Color(0.3f, 0.95f, 1f);
 
         private readonly IsolationTracker _tracker;
         private readonly FlagTracker _flags;
@@ -55,14 +56,14 @@ namespace AdminHelper
                 mark.Follow = (flag.Follow == null) ? null : flag.Follow.transform;
                 mark.Position = flag.Position;
                 mark.Glow = glow ? flag.Glow : null;
-                mark.Colour = FactionColour(flag.Type);
+                mark.Color = FactionColor(flag.Type);
                 mark.Label = flagLabels ? (flag.Carried ? "FLAG: " + flag.Name : flag.Name + " FLAG") : null;
                 mark.LabelHeight = FlagLabelHeight;
                 marks.Add(mark);
             }
 
             int local = GameAccess.LocalPlayerId;
-            int labelled = 0;
+            int labeled = 0;
             int maxLabels = Mathf.Max(0, Settings.MaxLabels.Value);
 
             List<ScoredPlayer> watched = _tracker.Watched;
@@ -71,15 +72,15 @@ namespace AdminHelper
                 ScoredPlayer scored = watched[i];
                 if (scored.PlayerId == local) continue;
 
-                bool text = labels && labelled < maxLabels;
-                if (text) labelled++;
+                bool text = labels && labeled < maxLabels;
+                if (text) labeled++;
 
                 RyLib.WorldMark mark = new RyLib.WorldMark();
                 mark.Key = "player-" + scored.PlayerId;
                 mark.Follow = (scored.Body == null) ? null : scored.Body.transform;
                 mark.Position = scored.Position;
                 mark.Glow = glow ? scored.Body : null;
-                mark.Colour = StateColour(scored);
+                mark.Color = StateColor(scored);
                 mark.Label = text ? Describe(scored) : null;
                 mark.LabelHeight = PlayerLabelHeight;
                 mark.RingRadius = rings ? PlayerRing : 0f;
@@ -89,31 +90,34 @@ namespace AdminHelper
 
         private static string Describe(ScoredPlayer scored)
         {
+            if (Settings.CompactLabels.Value) return scored.Name;
             return scored.Name + "\n" + State(scored) + "\nISO: " + scored.Isolation + "  DGR: " + scored.Danger;
         }
 
         internal static string State(ScoredPlayer scored)
         {
+            if (scored.CavCharge) return "CAV CHARGE";
             if (scored.Afk) return "AFK " + Mathf.FloorToInt(scored.AfkSeconds) + "s";
             if (scored.Flagged) return "RAMBO: " + Mathf.FloorToInt(scored.DwellSeconds) + "s";
-            return scored.InHonestMelee ? "FIGHT" : "ISOLATED";
+            return scored.InHonestMelee ? "MELEE GRACE" : "ISOLATED";
         }
 
-        internal static Color FactionColour(CarryableObjectType type)
+        internal static Color FactionColor(CarryableObjectType type)
         {
             FactionCountry faction = FlagTypes.Faction(type);
-            if (faction == FactionCountry.None || faction == FactionCountry.Allied || faction == FactionCountry.Central) return FlagColour;
-            return RyLib.Factions.Colour(faction);
+            if (faction == FactionCountry.None || faction == FactionCountry.Allied || faction == FactionCountry.Central) return FlagColor;
+            return RyLib.Factions.Color(faction);
         }
 
-        internal static Color StateColour(ScoredPlayer scored)
+        internal static Color StateColor(ScoredPlayer scored)
         {
-            if (scored.Afk) return AfkColour;
-            if (scored.InHonestMelee) return MeleeColour;
-            if (scored.Danger > 0) return Color.Lerp(DangerColour, DeadlyColour, Mathf.Clamp01(scored.Danger / 100f));
+            if (scored.CavCharge) return CavChargeColor;
+            if (scored.Afk) return AfkColor;
+            if (scored.InHonestMelee) return MeleeColor;
+            if (scored.Danger > 0) return Color.Lerp(DangerColor, DeadlyColor, Mathf.Clamp01(scored.Danger / 100f));
 
             float isolated = Mathf.InverseLerp(Settings.RingThreshold.Value, 100f, scored.Isolation);
-            return Color.Lerp(CalmColour, IsolatedColour, isolated);
+            return Color.Lerp(CalmColor, IsolatedColor, isolated);
         }
     }
 }

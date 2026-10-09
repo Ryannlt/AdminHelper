@@ -17,7 +17,7 @@ namespace AdminHelper
 
         public void Register(RyLib.HeaderTab header)
         {
-            RyLib.Page map = header.MapPage(AdminHelperMod.Guid, "Map", RyLib.StockIcon.Maps, Shown);
+            RyLib.Page map = header.MapPage(AdminHelperMod.Guid, "Minimap", RyLib.StockIcon.Maps, Shown);
             if (map != null) map.MapLayer(AdminHelperMod.Guid, Fill);
         }
 
@@ -40,7 +40,7 @@ namespace AdminHelper
                 mark.OnPlayer = true;
                 mark.PlayerId = scored.PlayerId;
                 mark.Shape = RyLib.MapShape.Outline;
-                mark.Colour = WorldLayer.StateColour(scored);
+                mark.Color = WorldLayer.StateColor(scored);
                 mark.Tooltip = WorldLayer.State(scored) + "\nISO " + scored.Isolation + "  DGR " + scored.Danger;
                 marks.Add(mark);
             }
@@ -58,7 +58,7 @@ namespace AdminHelper
                 mark.PlayerId = -1;
                 mark.Position = flag.Follow.transform.position;
                 mark.Shape = RyLib.MapShape.Flag;
-                mark.Colour = WorldLayer.FactionColour(flag.Type);
+                mark.Color = WorldLayer.FactionColor(flag.Type);
                 mark.Tooltip = flag.Carried ? "FLAG: " + flag.Name : flag.Name + " FLAG";
                 marks.Add(mark);
             }

@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.3.0
+
+- **Cavalry.**
+  - A mounted player is cavalry. Riders are scored against the nearest mounted teammate at compass range, which
+    AdminHelper reads from the game's compass.
+  - A Hussar or Dragoon on foot is scored like any other class.
+  - New `[Cavalry]` settings. `ScoreCavalry` is removed.
+- **Multicharge.** A mounted kill with fewer than 3 riders chained at compass range gets a red horse icon in the
+  kill log.
+- **Cav Charge.** Mounted players in a melee show a light purple CAV CHARGE state. The melee spreads between
+  riders over a longer distance and lasts while they stay close to an enemy. `]` reaches them right after the
+  RAMBOs.
+- **Kill log color key** under the title. The Killed In Melee and OUT OF SPACING icons are always listed, and the
+  name colors are listed while they show.
+- **Kill log name colors** show while Rambo UI is on, and with the new `KillLogColorsWithoutUi` while it is off.
+- **FIGHT is renamed MELEE GRACE**, the state for an isolated player excused while fighting a melee.
+- **Settings in the Mods tab.** Nearly every setting is in Mods > AdminHelper, grouped, with sliders, dropdowns
+  and text boxes.
+- **Rules tab hidden.** The game's Rules tab is hidden. `ShowRulesTab` brings it back.
+- **Compact labels.** A Mods tab switch shortens labels to the player's name.
+- **Reset to defaults** in the Mods tab puts every setting back to its default.
+- **Minimap.**
+  - The Map tab is renamed Minimap.
+  - Its image is 8192 pixels, covers only the play terrains, and leaves out players, horses and ships.
+  - Battle Area frames the current spawns and capture points, including spawns moved by a map mod.
+- **American spelling.** `ClusterNearMetres`, `ClusterFarMetres`, `AfkMoveMetres` and `MeleeChainMetres` are now
+  `...Meters`. Values in an existing config file carry over.
+- Needs RyLib 1.1.0.
+
 ## 1.2.0
 
 **Now built on [RyLib](https://github.com/Ryannlt/RyLib)**, a shared UI library, so AdminHelper and other mods can
@@ -14,8 +43,8 @@ readout are gone, and with them `ShowCornerList`, `ShowOwnScore` and `StartHudVi
 roam) and Off, like the game's Admin Raygun, and the mode is remembered between launches. F6 still hides and
 restores it. New `RamboUi`.
 
-**Colours say how bad it is.** Isolation alone runs green to yellow; any danger turns the mark orange, deepening
-to red. FIGHT stays blue and AFK grey.
+**Colors say how bad it is.** Isolation alone runs green to yellow; any danger turns the mark orange, deepening
+to red. FIGHT stays blue and AFK gray.
 
 **Spectate rambos with `[` and `]`.** Steps through watched players worst first, and the game's own key bar shows
 a Spectate Rambos entry in free roam and while spectating. New `SpectatePrevKey` and `SpectateNextKey`.
@@ -24,18 +53,18 @@ a Spectate Rambos entry in free roam and while spectating. New `SpectatePrevKey`
 Flags, Players Tab, Kill Log and Map.
 
 **Kill log.** A melee kill is marked with crossed swords, explained by a line under the heading; the old
-`IN MELEE` / `NO MELEE` text is gone. While Rambo UI is on, names are coloured by their rambo mark at the moment
+`IN MELEE` / `NO MELEE` text is gone. While Rambo UI is on, names are colored by their rambo mark at the moment
 of the kill. Clicking a row opens actions for the killer and the victim.
 
 **Reg TP prefers the same class.** It sends a player to the middle of their regiment's players of the same class,
 and to the closest friendly player when there are none.
 
-**Flags** glow in their faction's colour instead of a ring and beam, and follow the game's minimap reveal rules,
+**Flags** glow in their faction's color instead of a ring and beam, and follow the game's minimap reveal rules,
 with `FlagMinimapAlways` letting admins see all of them. New `ShowFlagLabels`. Every flag setting is now off by
 default, including `FlagMinimapMarkers`.
 
 **A battle map.** A Map tab with an overhead picture of the battle, every player drawn by class in
-their faction's colour, a class legend, search, zoom, rambo outlines and flags, and admin actions that only fire
+their faction's color, a class legend, search, zoom, rambo outlines and flags, and admin actions that only fire
 after a button is pressed. Turn it off with `MapEnabled` or Mods > AdminHelper > Map.
 
 ## 1.1.2
@@ -53,7 +82,7 @@ standing nearest the middle of the group, so they land in the line rather than o
 game's own admin plumbing, and both live in the admin block, so they only exist once you are logged in. New
 `RowActionsEnabled`.
 
-Source files are now grouped into `Core`, `Game`, `Tracking`, `Overlay` and `PMenu` folders. No behaviour
+Source files are now grouped into `Core`, `Game`, `Tracking`, `Overlay` and `PMenu` folders. No behavior
 change, but `build.ps1` now recurses.
 
 ## 1.1.1
@@ -67,7 +96,7 @@ the ground gets a marker of its own, named by its faction. Every flag carryable 
 not tied to one CTF mod. It ships **off**, since it only matters on a flag game mode - turn on
 `FlagHighlightEnabled` under the new `[CTF]` section.
 
-**Players standing still are greyed out.** Anyone who has not moved for `AfkSeconds` is drawn grey with an `AFK`
+**Players standing still are grayed out.** Anyone who has not moved for `AfkSeconds` is drawn gray with an `AFK`
 tag, so a parked player is not read as someone worth flying to. They keep their ring and their place in the list.
 New `[AFK]` settings.
 
@@ -87,7 +116,7 @@ are matched with punctuation and accents stripped from both sides, so `[45e]` is
 
 **Kill log.** Every kill is marked with whether the victim was in a melee when they died, so a teamkill in a
 scrum can be told apart from a clean one. A player counts as being in a melee once they hit, block, or are
-blocked by the other side, and that spreads to everyone standing within `MeleeChainMetres` of them. A blank mark
+blocked by the other side, and that spreads to everyone standing within `MeleeChainMeters` of them. A blank mark
 means the mod was not tracking and does not know, which is never to be read as a clean kill. A square toggle
 beside the heading switches the log to teamkills only, and typing `tk` in its search box does the same.
 
