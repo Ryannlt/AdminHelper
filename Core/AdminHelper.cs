@@ -6,13 +6,13 @@ using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.3.1.0")]
+[assembly: AssemblyFileVersion("1.3.1.0")]
 
 namespace AdminHelper
 {
-    [BepInPlugin(Guid, "AdminHelper", "1.3.0")]
-    [BepInDependency(RyLib.RyLibPlugin.Guid, "1.1.0")]
+    [BepInPlugin(Guid, "AdminHelper", "1.3.1")]
+    [BepInDependency(RyLib.RyLibPlugin.Guid, "1.1.1")]
     public class AdminHelperMod : BaseUnityPlugin
     {
         public const string Guid = "com.ryannlt.adminhelper";

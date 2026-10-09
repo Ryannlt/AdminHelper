@@ -35,8 +35,8 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\RyLib\RyLib.dll
 `BepInEx\LogOutput.log` contains these lines when both mods load:
 
 ```
-[Info   :   BepInEx] Loading [RyLib 1.1.0]
-[Info   :   BepInEx] Loading [AdminHelper 1.3.0]
+[Info   :   BepInEx] Loading [RyLib 1.1.1]
+[Info   :   BepInEx] Loading [AdminHelper 1.3.1]
 ```
 
 If they are missing, see [Troubleshooting](#troubleshooting).
@@ -58,7 +58,8 @@ F6 turns the overlay off, and pressing it again restores the previous mode. The 
 `ToggleKey` changes the key.
 
 A player is marked once their ISO passes `RingThreshold`. The mark is a glow visible through walls and terrain,
-a ring at their feet, and a label with their name, state and scores. The mark is removed when their ISO drops
+a ring on the ground around them, and a label with their name, state and scores. A rider's ring is wider and
+circles their horse. The mark is removed when their ISO drops
 below the threshold.
 
 **Compact labels** in **Mods > AdminHelper > Rambo UI**, or `CompactLabels`, shortens each label to the player's

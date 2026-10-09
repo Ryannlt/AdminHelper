@@ -8,6 +8,7 @@ namespace AdminHelper
     {
         private const float LayerHz = 10f;
         private const float PlayerRing = 1.6f;
+        private const float HorseRing = 2.6f;
         private const float PlayerLabelHeight = 2.1f;
         private const float FlagLabelHeight = 2.6f;
 
@@ -83,7 +84,7 @@ namespace AdminHelper
                 mark.Color = StateColor(scored);
                 mark.Label = text ? Describe(scored) : null;
                 mark.LabelHeight = PlayerLabelHeight;
-                mark.RingRadius = rings ? PlayerRing : 0f;
+                mark.RingRadius = rings ? (scored.Mounted ? HorseRing : PlayerRing) : 0f;
                 marks.Add(mark);
             }
         }

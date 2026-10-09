@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1
+
+- **Rings lie on the ground** and follow its slope. A rider's ring is wider and circles the horse.
+- Needs RyLib 1.1.1.
+
 ## 1.3.0
 
 - **Cavalry.**
