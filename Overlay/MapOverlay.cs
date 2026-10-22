@@ -17,7 +17,7 @@ namespace AdminHelper
 
         public void Register(RyLib.HeaderTab header)
         {
-            RyLib.Page map = header.MapPage(AdminHelperMod.Guid, "Minimap", RyLib.StockIcon.Maps, Shown);
+            RyLib.Page map = header.MapPage(AdminHelperMod.Guid, "Minimap", RyLib.StockIcon.Maps, Shown, false);
             if (map != null) map.MapLayer(AdminHelperMod.Guid, Fill);
         }
 
@@ -28,12 +28,13 @@ namespace AdminHelper
 
         private void Fill(List<RyLib.MapMark> marks)
         {
-            if (!AdminHelperMod.CanReveal()) return;
+            if (!GameAccess.IsLoggedInAdmin) return;
 
             List<ScoredPlayer> watched = AdminHelperMod.OverlayVisible ? _tracker.Watched : NoPlayers;
             for (int i = 0; i < watched.Count; i++)
             {
                 ScoredPlayer scored = watched[i];
+                if (!WorldLayer.Shown(scored)) continue;
 
                 RyLib.MapMark mark = new RyLib.MapMark();
                 mark.Key = "player-" + scored.PlayerId;

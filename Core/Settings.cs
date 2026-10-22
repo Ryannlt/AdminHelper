@@ -42,6 +42,11 @@ namespace AdminHelper
         public static ConfigEntry<RamboUiMode> RamboUi;
         public static ConfigEntry<string> ToggleKey;
         public static ConfigEntry<bool> CompactLabels;
+        public static ConfigEntry<bool> ShowRamboTag;
+        public static ConfigEntry<bool> ShowIsolatedTag;
+        public static ConfigEntry<bool> ShowMeleeGraceTag;
+        public static ConfigEntry<bool> ShowCavChargeTag;
+        public static ConfigEntry<bool> ShowAfkTag;
 
         public static ConfigEntry<string> SpectatePrevKey;
         public static ConfigEntry<string> SpectateNextKey;
@@ -173,6 +178,16 @@ namespace AdminHelper
                 "Key that hides the overlay and brings it back in the mode it was in. Any UnityEngine.KeyCode name.");
             CompactLabels = config.Bind("Display", "CompactLabels", false,
                 "Labels show only the player's name, in their state color, with no state or scores.");
+            ShowRamboTag = config.Bind("Display", "ShowRamboTag", true,
+                "Show players marked RAMBO: their ring, label and glow, their outline on the Minimap tab, and a stop in the spectate keys.");
+            ShowIsolatedTag = config.Bind("Display", "ShowIsolatedTag", true,
+                "Show players marked ISOLATED in the world, on the Minimap tab and in the spectate keys.");
+            ShowMeleeGraceTag = config.Bind("Display", "ShowMeleeGraceTag", true,
+                "Show players marked MELEE GRACE in the world, on the Minimap tab and in the spectate keys.");
+            ShowCavChargeTag = config.Bind("Display", "ShowCavChargeTag", true,
+                "Show players marked CAV CHARGE in the world, on the Minimap tab and in the spectate keys.");
+            ShowAfkTag = config.Bind("Display", "ShowAfkTag", true,
+                "Show players marked AFK in the world, on the Minimap tab and in the spectate keys. AfkMarkEnabled turns the AFK check itself off.");
 
             SpectatePrevKey = config.Bind("Spectate", "SpectatePrevKey", "LeftBracket",
                 "Spectate the previous watched player. The list runs worst first: RAMBO, then CAV CHARGE, then ISOLATED and MELEE GRACE by danger, then AFK. Any UnityEngine.KeyCode name.");
@@ -219,7 +234,7 @@ namespace AdminHelper
                 "Riders, the killer included, that must be chained together at compass range for a mounted kill to be valid.");
 
             MapEnabled = config.Bind("Map", "MapEnabled", true,
-                "Add a Minimap tab to the P menu: an overhead picture of the battle with every player drawn by class in their faction's color, and admin actions on them. Rambo outlines are drawn on it while the overlay is showing, and flags with FlagHighlightEnabled.");
+                "Add a Minimap tab to the P menu: an overhead picture of the battle with every player drawn by class in their faction's color, every ship by type, and admin actions on them. Rambo outlines are drawn on it while the overlay is showing, and flags with FlagHighlightEnabled. Without an rc login it shows only your own team, with no actions.");
 
             Migrate(config, "Isolation", "ClusterNearMetres", ClusterNearMeters);
             Migrate(config, "Isolation", "ClusterFarMetres", ClusterFarMeters);
@@ -259,6 +274,8 @@ namespace AdminHelper
             Reset(RyLib.GlowStyle.Glow);
             Reset(RyLib.GlowStyle.GlowWidth);
             Reset(RyLib.MapStyle.IconSize);
+            Reset(RyLib.MapStyle.ShowShips);
+            Reset(RyLib.MapStyle.HideCrew);
 
             Log.Info("settings reset to their defaults.");
         }

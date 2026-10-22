@@ -14,7 +14,11 @@ namespace AdminHelper
             if (next == previous || GameAccess.IsTyping) return;
 
             Candidates.Clear();
-            Candidates.AddRange(watched);
+            for (int i = 0; i < watched.Count; i++)
+            {
+                if (WorldLayer.Shown(watched[i])) Candidates.Add(watched[i]);
+            }
+
             if (Candidates.Count == 0) return;
 
             Candidates.Sort(Worst);

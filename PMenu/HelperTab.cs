@@ -15,10 +15,11 @@ namespace AdminHelper
             RyLib.HeaderTab minimapHeader = RyLib.PMenu.Header(AdminHelperMod.Guid, MinimapHeaderName, RyLib.StockIcon.Maps);
             if (minimapHeader != null) map.Register(minimapHeader);
 
-            RyLib.ModTab tab = RyLib.PMenu.ModTab(AdminHelperMod.Guid, TabName, RyLib.StockIcon.Shield);
+            RyLib.ModTab tab = RyLib.PMenu.ModTab(AdminHelperMod.Guid, TabName, RyLib.StockIcon.Shield, false);
             if (tab == null) return;
 
             tab.Section(AdminHelperMod.Guid, "Rambo UI", BuildRamboUi);
+            tab.Section(AdminHelperMod.Guid, "Tags", BuildTags);
             tab.Section(AdminHelperMod.Guid, "Detection", BuildDetection);
             tab.Section(AdminHelperMod.Guid, "Danger", BuildDanger);
             tab.Section(AdminHelperMod.Guid, "Formation", BuildFormation);
@@ -89,6 +90,15 @@ namespace AdminHelper
             section.Dropdown("Rambo UI", Settings.RamboUi, ModeText);
             section.Slider("Most labels", Settings.MaxLabels, 0, 32);
             section.TextField("Toggle key", Settings.ToggleKey);
+        }
+
+        private static void BuildTags(RyLib.Section section)
+        {
+            section.Toggle("Rambo", Settings.ShowRamboTag, RyLib.StockIcon.Players);
+            section.Toggle("Isolated", Settings.ShowIsolatedTag, RyLib.StockIcon.Players);
+            section.Toggle("Melee Grace", Settings.ShowMeleeGraceTag, RyLib.StockIcon.Skull);
+            section.Toggle("Cav Charge", Settings.ShowCavChargeTag, RyLib.StockIcon.Players);
+            section.Toggle("AFK", Settings.ShowAfkTag, RyLib.StockIcon.Unspawned);
         }
 
         private static void BuildDetection(RyLib.Section section)
@@ -173,6 +183,8 @@ namespace AdminHelper
         private static void BuildMinimap(RyLib.Section section)
         {
             section.Toggle("Minimap tab", Settings.MapEnabled, RyLib.StockIcon.Maps);
+            section.Toggle("Ships", RyLib.MapStyle.ShowShips, RyLib.StockIcon.Maps);
+            section.Toggle("Hide ship crews", RyLib.MapStyle.HideCrew, RyLib.StockIcon.Players);
             section.Slider("Icon size", RyLib.MapStyle.IconSize, 10f, 40f, 1f, "0");
         }
 
@@ -194,7 +206,8 @@ namespace AdminHelper
         private static void BuildGeneral(RyLib.Section section)
         {
             section.Toggle("Enabled", Settings.Enabled, RyLib.StockIcon.Shield);
-            section.ConfirmButton("Reset to defaults", Settings.ResetAll, RyLib.StockIcon.Admin);
+            section.ConfirmButton("Reset to defaults", Settings.ResetAll, RyLib.StockIcon.Admin,
+                "Puts every AdminHelper setting back to its default, with the glow and map settings shown here. Click twice within four seconds.");
             section.Slider("Scoring per second", Settings.TickHz, 1f, 30f, 1f, "0");
         }
     }

@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.4.0
+
+- **Mods tab without an rc login.** AdminHelper's settings show to every player.
+- **Minimap tab without an rc login.** It shows only your own team and its ships, with no actions. Enemy
+  players, ships, rambo outlines and flags are never drawn there without an `rc login`.
+- **Team filter.** With an `rc login`, **Both Teams** on the Minimap tab cycles between both teams and each team.
+- **Ships on the Minimap tab.**
+  - Each ship is drawn with the icon for its type, in its owner's color, and changes color when captured.
+  - Players aboard are hidden and listed when the ship is clicked.
+  - Go To, Bring Ship, Move Ship and Remove Ship act on the selected ship.
+- **Tags.** A new Tags section turns each state on or off: RAMBO, ISOLATED, MELEE GRACE, CAV CHARGE and AFK. A
+  state that is off is not drawn in the world or on the Minimap tab and is skipped by the spectate keys.
+- **Header tabs** keep a normal width instead of stretching across the bar.
+- **Setting descriptions.** Hovering over a setting in the Mods tab shows what it does.
+- **Privateers** on the Minimap tab are drawn black with a white outline.
+- The Minimap tab image no longer shows ships, or smoke from muskets and cannons.
+- Needs RyLib 1.2.0.
+
 ## 1.3.1
 
 - **Rings lie on the ground** and follow its slope. A rider's ring is wider and circles the horse.

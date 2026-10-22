@@ -7,7 +7,8 @@ AdminHelper is a [BepInEx](https://github.com/BepInEx/BepInEx) mod for **Holdfas
 every player on their distance from their own side and marks players who stay out of formation (rambos). It also
 adds admin tools to the P menu.
 
-Anything that shows another player requires an `rc login` on the server. See [Admin only](#admin-only).
+Anything that shows another player requires an `rc login` on the server, except your own team on the Minimap
+tab. See [Admin only](#admin-only).
 
 ## Install
 
@@ -35,8 +36,8 @@ Steam\steamapps\common\Holdfast Nations At War\BepInEx\plugins\RyLib\RyLib.dll
 `BepInEx\LogOutput.log` contains these lines when both mods load:
 
 ```
-[Info   :   BepInEx] Loading [RyLib 1.1.1]
-[Info   :   BepInEx] Loading [AdminHelper 1.3.1]
+[Info   :   BepInEx] Loading [RyLib 1.2.0]
+[Info   :   BepInEx] Loading [AdminHelper 1.4.0]
 ```
 
 If they are missing, see [Troubleshooting](#troubleshooting).
@@ -74,6 +75,11 @@ name in their state color.
 | MELEE GRACE | The player is isolated but joined a melee before being flagged, so they are not flagged while it lasts. See [Melee grace](#melee-grace). |
 | CAV CHARGE | A mounted player is in a melee. See [Cavalry](#cavalry). Shown whatever their ISO. |
 | AFK | The player has not moved for `AfkSeconds`. See [AFK players](#afk-players). |
+
+**Tags** in **Mods > AdminHelper** has a switch for each state. A state that is switched off loses its glow,
+ring and label, its outline on the Minimap tab, and its place in the spectate order. Kill log name colors stay.
+The config file names are `ShowRamboTag`, `ShowIsolatedTag`, `ShowMeleeGraceTag`, `ShowCavChargeTag` and
+`ShowAfkTag`.
 
 ### Colors
 
@@ -124,12 +130,13 @@ marked CAV CHARGE in light purple.
 
 ### Settings
 
-The P menu has AdminHelper's settings under **Mods > AdminHelper**. Each section holds switches, sliders,
-dropdowns and text boxes for the same values as the config file:
+The P menu has AdminHelper's settings under **Mods > AdminHelper**, with or without an `rc login`. Each section
+holds switches, sliders, dropdowns and text boxes for the same values as the config file:
 
 | Section | Settings |
 | --- | --- |
 | Rambo UI | Compact labels, labels, rings, glow, mode, most labels, toggle key |
+| Tags | Rambo, isolated, melee grace, cav charge, AFK |
 | Detection | Marked at, rambo at, hold seconds, isolation distances, rise seconds, recover multiplier, exempt classes |
 | Danger | Enemy radius, enemy crowd |
 | Formation | Suppression and the line and cluster checks |
@@ -139,15 +146,15 @@ dropdowns and text boxes for the same values as the config file:
 | Flags | The four flag settings |
 | Players Tab | Search parts, row buttons, Rules tab |
 | Kill Log | Kill log marks, teamkill filter, color key, colors without Rambo UI |
-| Minimap | Minimap tab, icon size |
+| Minimap | Minimap tab, ships, hide ship crews, icon size |
 | Spectate | Previous and next keys |
 | Glow | Glow style from RyLib |
 | General | Enabled, reset to defaults, scoring per second |
 
-`RequireAdminLogin` is only in the config file.
+Hovering over a setting for a moment shows what it does. `RequireAdminLogin` is only in the config file.
 
 **Reset to defaults** in the General section puts every AdminHelper setting back to its default, along with the
-glow and icon size settings shown in the tab. It needs a second click within four seconds.
+glow and map settings from RyLib shown in the tab. It needs a second click within four seconds.
 
 ### Rules tab
 
@@ -233,20 +240,46 @@ The Minimap tab is on by default. **Minimap tab** under **Mods > AdminHelper > M
 it off.
 
 The tab shows an overhead image of the play area, with each player drawn as their class icon in their faction's
-color. The image is taken once per round at 8192 pixels, covers the terrains that hold the spawns and capture
-points, and leaves out players, horses and ships.
+color and each ship as the icon for its type. The image is taken once per round at 8192 pixels, covers the
+terrains that hold the spawns and capture points, and leaves out players, horses, ships and smoke.
 
 - The legend under the map lists the classes each faction can spawn and how many of each are on the field.
 - The search box filters the icons by name, class or faction.
 - The mouse wheel zooms and dragging pans. **Battle Area** frames the current spawns and capture points, and
   **Whole Map** shows the full image.
 - **Icons -** and **Icons +** change the icon size.
+- **Both Teams** under them cycles between both teams and each team on its own.
 - Clicking a player selects them. The panel has Spectate, Go To, Bring, Teleport To, Slay, Reg TP and
   Rez + Reg TP. Slay needs a second click.
 - **Teleport To** moves the selected player and **Teleport Me** moves you. Both wait for a click on the map and
   teleport to that spot. Right click cancels.
-- While the rambo overlay is showing, marked players have an outline in their mark color.
+- While the rambo overlay is showing, marked players have an outline in their mark color. States switched off
+  under **Tags** have no outline.
 - With `FlagHighlightEnabled` on, flags are drawn on the map.
+
+### Ships
+
+Ships and boats are drawn in their owner's color. A captured ship changes to its new owner's color, and its
+tooltip names the faction it was captured from. A ship flying false colors is drawn in its real owner's color. A
+sinking ship is drawn faded.
+
+Players aboard a ship are hidden from the map. Clicking a ship selects it and lists its crew under the buttons.
+Clicking a crew member opens their player actions, and **Back to Ship** returns to the ship.
+
+| Button | Effect |
+| --- | --- |
+| Go To | Moves your free flight camera above the ship. While you are alive, teleports you to the ship's spawn point. |
+| Bring Ship | Moves the ship to your camera, or to you while you are alive. |
+| Move Ship | Waits for a click on water and moves the ship there. Shows only in free flight. Right click cancels. |
+| Remove Ship | Removes the ship and everyone aboard. Needs a second click within four seconds. |
+
+**Ships** and **Hide ship crews** in the Minimap section turn off the ships and the crew hiding.
+
+### Without an rc login
+
+Without an `rc login` the Minimap tab shows only your own team: your teammates, your team's ships and their
+crews. Enemy players, enemy ships, enemy boarders, rambo outlines and flags are never drawn, whatever the
+settings. There are no action buttons and no team filter.
 
 ## Flags
 
@@ -268,7 +301,7 @@ carryable in the game, including the custom bearing flag, whichever mod or map p
 ## AFK players
 
 A player who has moved less than `AfkMoveMeters` in `AfkSeconds` is marked AFK in gray. Moving further clears
-the mark. `AfkMarkEnabled` turns it off.
+the mark. `AfkMarkEnabled` turns the check off. **AFK** under **Tags** keeps the check and hides the mark.
 
 ## Melee grace
 
@@ -305,15 +338,15 @@ classes.
 
 Other players are shown only after the server accepts your `rc login`. Setting `RequireAdminLogin` to `false`
 removes this check for testing with bots on your own server. With it off, every player is shown to anyone
-running the mod.
+running the mod. The Minimap tab ignores this setting and never shows the other team without an `rc login`.
 
 ## Settings
 
 The config file is `BepInEx\config\com.ryannlt.adminhelper.cfg`, created on first launch. Changes to the file
 apply within a second without a restart.
 
-[ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager) can edit the settings in game.
-It needs `HideManagerGameObject = true` under `[Chainloader]` in `BepInEx\config\BepInEx.cfg`.
+[ConfigurationManager](https://thunderstore.io/c/holdfast-nations-at-war/p/Ryanlt/ConfigurationManager/) can
+edit the settings in game.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
@@ -348,6 +381,11 @@ It needs `HideManagerGameObject = true` under `[Chainloader]` in `BepInEx\config
 | `RamboUi` | `Off` | When the overlay shows: `On`, `FreeflightOnly` or `Off`. |
 | `ToggleKey` | `F6` | Key that turns the overlay off and back on. Any `KeyCode` name. |
 | `CompactLabels` | `false` | Labels show only the player's name. |
+| `ShowRamboTag` | `true` | Shows players marked RAMBO. |
+| `ShowIsolatedTag` | `true` | Shows players marked ISOLATED. |
+| `ShowMeleeGraceTag` | `true` | Shows players marked MELEE GRACE. |
+| `ShowCavChargeTag` | `true` | Shows players marked CAV CHARGE. |
+| `ShowAfkTag` | `true` | Shows players marked AFK. |
 | `ShowRings` | `true` | Ring under each marked player. |
 | `ShowLabels` | `true` | Label above each marked player. |
 | `ShowGlow` | `true` | Glow on marked players and flags, visible through walls. |
@@ -374,8 +412,8 @@ It needs `HideManagerGameObject = true` under `[Chainloader]` in `BepInEx\config
 | `MultichargeMinRiders` | `3` | Riders chained at compass range, the killer included, for a valid mounted kill. |
 | `MapEnabled` | `true` | Shows the Minimap tab in the P menu. |
 
-Glow style and map icon size are set in [RyLib's config](https://github.com/Ryannlt/RyLib#settings),
-`com.ryannlt.rylib.cfg`.
+Glow style, map icon size, ships and crew hiding are set in
+[RyLib's config](https://github.com/Ryannlt/RyLib#settings), `com.ryannlt.rylib.cfg`.
 
 ## Tuning
 

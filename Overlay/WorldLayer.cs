@@ -4,6 +4,15 @@ using UnityEngine;
 
 namespace AdminHelper
 {
+    internal enum RamboTag
+    {
+        CavCharge,
+        Afk,
+        Rambo,
+        MeleeGrace,
+        Isolated
+    }
+
     internal sealed class WorldLayer
     {
         private const float LayerHz = 10f;
@@ -71,7 +80,7 @@ namespace AdminHelper
             for (int i = 0; i < watched.Count; i++)
             {
                 ScoredPlayer scored = watched[i];
-                if (scored.PlayerId == local) continue;
+                if (scored.PlayerId == local || !Shown(scored)) continue;
 
                 bool text = labels && labeled < maxLabels;
                 if (text) labeled++;
@@ -97,10 +106,34 @@ namespace AdminHelper
 
         internal static string State(ScoredPlayer scored)
         {
-            if (scored.CavCharge) return "CAV CHARGE";
-            if (scored.Afk) return "AFK " + Mathf.FloorToInt(scored.AfkSeconds) + "s";
-            if (scored.Flagged) return "RAMBO: " + Mathf.FloorToInt(scored.DwellSeconds) + "s";
-            return scored.InHonestMelee ? "MELEE GRACE" : "ISOLATED";
+            switch (Tag(scored))
+            {
+                case RamboTag.CavCharge: return "CAV CHARGE";
+                case RamboTag.Afk: return "AFK " + Mathf.FloorToInt(scored.AfkSeconds) + "s";
+                case RamboTag.Rambo: return "RAMBO: " + Mathf.FloorToInt(scored.DwellSeconds) + "s";
+                case RamboTag.MeleeGrace: return "MELEE GRACE";
+                default: return "ISOLATED";
+            }
+        }
+
+        internal static RamboTag Tag(ScoredPlayer scored)
+        {
+            if (scored.CavCharge) return RamboTag.CavCharge;
+            if (scored.Afk) return RamboTag.Afk;
+            if (scored.Flagged) return RamboTag.Rambo;
+            return scored.InHonestMelee ? RamboTag.MeleeGrace : RamboTag.Isolated;
+        }
+
+        internal static bool Shown(ScoredPlayer scored)
+        {
+            switch (Tag(scored))
+            {
+                case RamboTag.CavCharge: return Settings.ShowCavChargeTag.Value;
+                case RamboTag.Afk: return Settings.ShowAfkTag.Value;
+                case RamboTag.Rambo: return Settings.ShowRamboTag.Value;
+                case RamboTag.MeleeGrace: return Settings.ShowMeleeGraceTag.Value;
+                default: return Settings.ShowIsolatedTag.Value;
+            }
         }
 
         internal static Color FactionColor(CarryableObjectType type)
